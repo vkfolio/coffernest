@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+
+# Node
+node_modules/
+.vite/
+
+# Secrets / local
+.env
+.env.*
+!.env.example
+!.env.selfhost.example
+*.pem
+
+# Reproducible Docker builds need the lockfile (overrides the global ignore)
+!package-lock.json

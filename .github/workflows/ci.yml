@@ -1,0 +1,38 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: coffernest
+          POSTGRES_PASSWORD: coffernest
+          POSTGRES_DB: coffernest
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U coffernest" --health-interval 3s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://coffernest:coffernest@localhost:5432/coffernest_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen --extra ai
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy coffernest
+      - run: uv run pytest -q

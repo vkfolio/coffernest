@@ -1,0 +1,51 @@
+name: Bug report
+description: Something on your Coffernest server doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please leave out anything private: real amounts, account numbers,
+        emails, passwords, tokens and keys.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+  - type: input
+    id: version
+    attributes:
+      label: Server version
+      description: The "version" shown at https://<your-server>/api/v1/meta
+    validations:
+      required: true
+  - type: dropdown
+    id: setup
+    attributes:
+      label: How do you run it?
+      options:
+        - docker compose (this repository)
+        - Docker image from ghcr.io
+        - Coolify, Portainer or another panel
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: App and iOS version (if it's about the iPhone app)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: "`docker compose logs api --tail 100`, with anything private removed."
+      render: text
