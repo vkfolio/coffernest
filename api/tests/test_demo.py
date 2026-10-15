@@ -104,11 +104,14 @@ async def test_policy_pages_without_a_web_app(anon: httpx.AsyncClient) -> None:
     assert privacy.headers["content-type"].startswith("text/html")
     assert "<h1>Privacy policy</h1>" in privacy.text
     assert '<a href="https://github.com/vkfolio/coffernest/issues">' in privacy.text
+    assert '<a href="mailto:me@vkfolio.com">me@vkfolio.com</a>' in privacy.text
     assert privacy.headers["x-content-type-options"] == "nosniff"
     assert privacy.headers["x-frame-options"] == "DENY"
     terms = await anon.get("/terms")
     assert "<ol><li><strong>What Coffernest is.</strong>" in terms.text
     assert "Coffernest server" in (await anon.get("/")).text
+    support = await anon.get("/support")
+    assert support.status_code == 200 and "<h1>Coffernest support</h1>" in support.text
 
 
 async def test_retires_a_saved_browser_app(anon: httpx.AsyncClient) -> None:

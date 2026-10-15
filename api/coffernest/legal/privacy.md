@@ -1,17 +1,20 @@
 # Privacy policy
 
-_Last updated: 14 October 2026_
+_Last updated: 15 October 2026_
 
 Coffernest is a household money tracker. This policy covers the Coffernest iPhone app and the
-open-source Coffernest server. It is published by vkfolio, the developer of Coffernest.
+open-source Coffernest server. It is published by vignesh karnika (vkfolio), the developer of
+Coffernest.
 
 ## The short version
 
-- Coffernest has no accounts with us, no analytics, no advertising and no tracking.
-- Your entries stay on your iPhone, or on a Coffernest server that you or someone you trust runs.
-- We, the developer, never receive your financial data.
-- The optional assistant sends questions and the figures needed to answer them to the AI provider
-  that you, or your server's operator, choose. It does this only after you agree.
+- Using Coffernest on your iPhone needs no account. There are no analytics, no advertising and
+  no tracking.
+- Your entries stay on your iPhone, or on a Coffernest server that you choose.
+- We, the developer, never receive your financial data, except on the one server we run
+  ourselves, described below, and only if you have an account there.
+- The optional assistant sends what it needs to the AI provider that you, or your server's
+  operator, choose. It does this only after you agree.
 
 ## Where your data lives
 
@@ -21,9 +24,16 @@ people and categories. It is included in your encrypted device backups and is re
 delete the app or use Settings → Erase all data.
 
 **On a Coffernest server.** If you connect to a server, your data is stored on that server. The
-server's operator, which may be you, controls it. Coffernest servers are self-hosted, and the
-developer does not run one for you. The operator decides how long data is kept and who can reach
-the machine. Members of a household can see the household's data according to their role.
+server's operator, which may be you, controls it. Most Coffernest servers are run by the people
+who use them. The operator decides how long data is kept and who can reach the machine. Members
+of a household can see the household's data according to their role.
+
+**On the server we run.** The developer runs one Coffernest server, at
+https://coffernest.vkfolio.com. It holds a demo household of made-up data, which anyone can sign
+in to and which is reset regularly, and the households of people its admin has added. It is not
+open for public sign-up. If you have an account there, the developer is its operator: your data
+is used only to run Coffernest for you, is never sold or shared, and is deleted when you delete
+your account or household.
 
 ## What is stored
 
@@ -40,15 +50,22 @@ Coffernest does not connect to banks, read bank credentials or SMS messages, or 
 ## The assistant (optional)
 
 - **Apple Intelligence**: the assistant runs on your iPhone. Nothing leaves the device.
-- **Your server's assistant**: if the server's operator has set one up, your question and the
-  figures needed to answer it are sent from the server to the provider the operator chose (for
-  example Anthropic or OpenAI). The app asks for your permission first, and you can withdraw it
-  in Settings → Assistant.
+- **Your server's assistant**: if the server's operator has set one up, it can answer questions,
+  read statements you upload and sort entries into categories. For that, your question and the
+  figures needed to answer it, the statements you upload, and the payee, amount and date of
+  entries to sort are sent from the server to the provider the operator chose (for example
+  Anthropic or OpenAI). The app asks for your permission first, and you can withdraw it in
+  Settings → Assistant. The server we run has no assistant.
 - **Your own API key** (Advanced): the app sends your question and the figures needed directly
   to the provider you picked, using your key. The app asks for permission first. Full account
   numbers and your sign-in details are never sent.
 
 Those providers handle data under their own privacy policies.
+
+## Purchases
+
+The free trial and the one-time unlock are bought through Apple's App Store. Apple handles the
+payment; we receive no card or bank details, only Apple's confirmation of what was bought.
 
 ## Permissions the app asks for
 
@@ -77,7 +94,7 @@ server, the server's operator is responsible for it. For data on your iPhone, yo
 
 ## Contact
 
-Questions about this policy: open an issue at
+Questions about this policy: e-mail me@vkfolio.com, or open an issue at
 https://github.com/vkfolio/coffernest/issues. Report security problems privately as
 described in SECURITY.md in that repository.
 

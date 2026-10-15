@@ -1,5 +1,5 @@
-"""Public pages the API serves itself: the privacy policy and terms (the App Store links to
-them, and /meta points the apps here) and a short note at /.
+"""Public pages the API serves itself: the privacy policy, terms and support page (the App Store
+links to them, and /meta points the apps here) and a short note at /.
 
 The text is the markdown in ``coffernest/legal``. It uses only
 headings, paragraphs, lists, **bold**, _italics_ and bare links, so a few lines convert it.
@@ -39,7 +39,9 @@ def _inline(text: str) -> str:
     out = html.escape(text, quote=False)
     out = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", out)
     out = re.sub(r"(?<![\w*])_(.+?)_(?!\w)", r"<em>\1</em>", out)
-    return re.sub(r"https?://[^\s<]+[^\s<.,;:)]", lambda m: f'<a href="{m[0]}">{m[0]}</a>', out)
+    out = re.sub(r"https?://[^\s<]+[^\s<.,;:)]", lambda m: f'<a href="{m[0]}">{m[0]}</a>', out)
+    email = r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"
+    return re.sub(email, lambda m: f'<a href="mailto:{m[0]}">{m[0]}</a>', out)
 
 
 def to_html(markdown: str) -> str:
@@ -84,12 +86,18 @@ async def terms() -> HTMLResponse:
     return HTMLResponse(_legal("terms"))
 
 
+@router.get("/support", response_class=HTMLResponse)
+async def support() -> HTMLResponse:
+    return HTMLResponse(_legal("support"))
+
+
 @router.get("/", response_class=HTMLResponse)
 async def home() -> HTMLResponse:
     body = (
         "<h1>This is a Coffernest server</h1><p>Open the Coffernest app on your iPhone and enter "
         "this page's address to sign in or sync.</p>"
-        '<p><a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of use</a></p>'
+        '<p><a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of use</a> · '
+        '<a href="/support">Support</a></p>'
     )
     return HTMLResponse(_PAGE.format(title="Coffernest server", body=body))
 
