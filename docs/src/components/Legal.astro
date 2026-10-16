@@ -1,0 +1,11 @@
+---
+// Renders a policy from api/coffernest/legal/, the same text the server serves at /privacy and /terms.
+// The page supplies the title, so the file's own heading is dropped.
+import * as privacy from '../../../api/coffernest/legal/privacy.md';
+import * as terms from '../../../api/coffernest/legal/terms.md';
+
+interface Props { name: 'privacy' | 'terms' }
+const doc = { privacy, terms }[Astro.props.name];
+const html = (await doc.compiledContent()).replace(/^\s*<h1[^>]*>.*?<\/h1>/s, '');
+---
+<Fragment set:html={html} />

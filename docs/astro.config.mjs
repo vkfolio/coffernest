@@ -21,6 +21,7 @@ export default defineConfig({
         { label: 'Assistant and AI', items: [{ autogenerate: { directory: 'ai' } }] },
         { label: 'Run your own server', items: [{ autogenerate: { directory: 'server' } }] },
         { label: 'API', items: [{ autogenerate: { directory: 'api' } }] },
+        { label: 'Help', items: ['faq', 'privacy', 'terms'] },
       ],
     }),
   ],

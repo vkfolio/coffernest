@@ -1,0 +1,102 @@
+---
+title: Questions and support
+description: Answers to common questions about Coffernest, and how to get help.
+sidebar:
+  order: 1
+  label: Questions and support
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="tip" title="Get in touch">
+E-mail [me@vkfolio.com](mailto:me@vkfolio.com) and we'll reply within a few days. For bugs and ideas you can also open an issue on [GitHub](https://github.com/vkfolio/coffernest/issues).
+</Aside>
+
+## The basics
+
+### Does Coffernest connect to my bank?
+
+No. Coffernest is a ledger you fill in yourself. It never connects to a bank, never asks for bank passwords, doesn't read your SMS and can't move money. On a server you can upload a statement PDF to fill your books faster, and you check what was read before it's added. See [Statements and receipts](/app/statements/).
+
+### Do I need a server?
+
+No. Choose **Use on this iPhone** on the first screen and your books stay on the phone, with no account. A server is only needed if your family wants to share one set of books, each person with their own sign-in. See [Three ways to use it](/start/ways-to-use/).
+
+### Can I try it before I start?
+
+Yes. Choose **Look around with sample data** on the first screen. It's a made-up household with a year of entries, it's always free, and nothing you change is kept.
+
+### Does it work outside India, in my currency?
+
+Yes. Each household has one currency, and amounts follow your iPhone's region, so you see $1,234,567, 1.234.567 € or ₹12,34,567. You can also choose the month your financial year starts. The tax summary is only shown for Indian rupees. See [Currency and region](/app/currency/).
+
+## Pricing
+
+### How much does it cost?
+
+Coffernest is free to download. When you start your own books you get a free 21-day trial, then a one-time purchase unlocks it for good. There's no subscription. The price is set by the App Store for your country and shown before you buy. See [Pricing and the free trial](/start/pricing/).
+
+### What happens when the trial ends?
+
+Your books become read-only. Nothing is deleted: you can still see every entry, export everything and delete your data. You just can't add, edit or sync entries until you unlock.
+
+### Does my family have to pay too?
+
+No. On a server only the household's admin pays. The family members the admin adds use Coffernest free, with their own sign-in.
+
+### I have a new iPhone. How do I get my unlock back?
+
+Sign in to the App Store with the same Apple Account. Coffernest usually notices by itself. If it doesn't, open **Settings**, tap the **Coffernest** row at the top, then tap **Restore purchase**.
+
+### How do I get a refund?
+
+Purchases are made through Apple, so ask Apple at [reportaproblem.apple.com](https://reportaproblem.apple.com).
+
+## Family and servers
+
+### How do I add my partner or parents?
+
+On a server, the admin goes to **Settings › Household** and taps **Add family member**, then enters that person's email. They install Coffernest, choose **Connect to a server**, and sign up with that email. See [Family members](/family/members/).
+
+To track spending for children or parents without giving them a login, add them under **Settings › People** instead. See [People in your books](/family/people/).
+
+### I started on my iPhone. Can I move to a server later?
+
+Yes. Go to **Settings › Sync with a server**, sign in, and your books sync both ways. See [Sync with a server](/app/sync/).
+
+### Where do I get a server?
+
+You can run one yourself. The Coffernest server is open source (AGPL-3.0) and starts with one Docker Compose file on a home server, a Raspberry Pi or a small cloud machine. See [Install the server](/server/install/).
+
+### Is my data safe on a server?
+
+Your data stays on the server you choose, and only the people in your household can see it. The server supports two-step sign-in, locks out repeated wrong passwords, and stores full account numbers encrypted. See [Security](/server/security/) and the [Privacy policy](/privacy/).
+
+## The assistant
+
+### Do I have to use the AI assistant?
+
+No. Coffernest works fully without it, and it's off unless you or your server's owner turn it on.
+
+### Where do my figures go when I ask a question?
+
+That depends on who answers. Apple Intelligence runs on your iPhone. If your server's owner set up an assistant, or you add your own API key, Coffernest asks for your permission before any figures are sent, and names who receives them. You can withdraw that permission in **Settings › Assistant**. See [Using the assistant](/ai/assistant/).
+
+### Is the assistant financial advice?
+
+No. Free to spend, loan estimates, payoff plans, tax figures and the assistant's answers are worked out from what you enter. They're estimates to help you plan, not financial advice.
+
+## Your data
+
+### Can I export my data?
+
+Yes. **Settings › Export CSV** exports your entries for any date range. On a server, the owner can also make an encrypted backup of the whole household from **Settings › Backup**. See [Privacy and security](/app/privacy/).
+
+### How do I delete everything?
+
+- **On this iPhone**: **Settings › Erase all data on this iPhone**, or delete the app.
+- **On a server**: open **Settings**, tap your name at the top, then **Delete account**. The admin can delete the whole household from **Settings › Household › Delete household**.
+
+### Does Coffernest track me or show ads?
+
+No. There are no ads, no analytics and no tracking, in the app or on the server.
