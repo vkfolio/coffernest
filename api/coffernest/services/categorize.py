@@ -581,7 +581,7 @@ async def run(session: AsyncSession, household_id: uuid.UUID, llm: Any | None) -
                 + "\n\nPayee keys (with a sample description and how much was spent):\n"
                 + "\n".join(
                     f"- {k} | {unknown[k][0].payee[:60]} | {len(unknown[k])} entries, "
-                    f"₹{sum(t.amount for t in unknown[k]):,.0f}"
+                    f"{sum(t.amount for t in unknown[k]):,.0f} spent"
                     for k in batch
                 )
             )

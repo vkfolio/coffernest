@@ -70,12 +70,13 @@ class FeedbackIn(BaseModel):
 
 async def _require_enabled(
     session: Session, household_id: uuid.UUID, settings: SettingsDep
-) -> None:
+) -> Household:
     if settings.ai_provider == "none":
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "AI isn't set up on the server")
     household = await session.get(Household, household_id)
     if household is None or not household.ai_enabled:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Turn on AI suggestions in Settings first")
+    return household
 
 
 def _model_name(settings: SettingsDep) -> str:
@@ -117,7 +118,7 @@ async def suggestions(ctx: Reader, session: Session) -> list[AiSuggestion]:
 
 @router.post("/suggestions/refresh", response_model=list[SuggestionOut])
 async def refresh(ctx: Writer, session: Session, settings: SettingsDep) -> list[AiSuggestion]:
-    await _require_enabled(session, ctx.household_id, settings)
+    household = await _require_enabled(session, ctx.household_id, settings)
     last = await session.scalar(
         select(func.max(AiSuggestion.created_at)).where(
             AiSuggestion.household_id == ctx.household_id
@@ -129,7 +130,7 @@ async def refresh(ctx: Writer, session: Session, settings: SettingsDep) -> list[
         )
     try:
         llm = get_llm(settings, db.sessionmaker(), ctx.household_id)
-        items, run = await service.suggest(llm)
+        items, run = await service.suggest(llm, currency=household.currency)
     except AIUnavailable as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
     batch = str(uuid.uuid4())
@@ -173,10 +174,10 @@ async def feedback(
 
 @router.post("/ask", response_model=AnswerOut)
 async def ask(body: AskIn, ctx: Reader, session: Session, settings: SettingsDep) -> AnswerOut:
-    await _require_enabled(session, ctx.household_id, settings)
+    household = await _require_enabled(session, ctx.household_id, settings)
     try:
         llm = get_llm(settings, db.sessionmaker(), ctx.household_id)
-        answer = await service.ask(llm, body.question)
+        answer = await service.ask(llm, body.question, currency=household.currency)
     except AIUnavailable as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
     return AnswerOut(**answer.__dict__)
@@ -353,7 +354,7 @@ async def send_message(
     thread_id: uuid.UUID, body: MessageIn, ctx: Reader, session: Session, settings: SettingsDep
 ) -> StreamingResponse:
     """Server-sent events: meta, status{tool}, token{text}, block{...}, done{message}, error."""
-    await _require_enabled(session, ctx.household_id, settings)
+    currency = (await _require_enabled(session, ctx.household_id, settings)).currency
     thread = await owned(session, ChatThread, thread_id, ctx)
     history = await _messages(session, thread.id)
     question = body.content.strip()
@@ -380,7 +381,7 @@ async def send_message(
         thread.title = question[:80] + ("…" if len(question) > 80 else "")
     thread.updated_at = datetime.now(UTC)
     await session.commit()
-    system = await chat.system_prompt(session, ctx.household_id)
+    system = await chat.system_prompt(session, ctx.household_id, currency)
     ext_ids = [e.id for e, _ in files]
     prior_evidence = [e for m in history for e in m.evidence][-40:]
     hid, tid = ctx.household_id, thread.id
@@ -421,7 +422,7 @@ async def send_message(
             return MessageOut.model_validate(msg).model_dump(mode="json")
 
     async def events() -> AsyncIterator[str]:
-        state = chat.TurnState(hid, ctx=ctx if ctx.can_write else None)
+        state = chat.TurnState(hid, ctx=ctx if ctx.can_write else None, currency=currency)
         queue: asyncio.Queue[Event | None] = asyncio.Queue()
         images: list[bytes] = []
         attached = ""

@@ -14,7 +14,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Cookie, Header, HTTPException, Request, Response, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +22,7 @@ from coffernest.config import Settings
 from coffernest.deps import Reader, Session, SettingsDep
 from coffernest.enums import Relation, Role
 from coffernest.models import AuditLog, Household, Invite, Member, RefreshToken, User
+from coffernest.money import check_currency, check_timezone
 from coffernest.routes.people import person_for_member
 from coffernest.security import throttle, totp
 from coffernest.security.passwords import hash_password, needs_rehash, verify_password
@@ -51,6 +52,20 @@ class RegisterIn(BaseModel):
     display_name: str = Field(min_length=1, max_length=80)
     household_name: str = Field(default="Home", max_length=80)
     invite_token: str | None = None
+    # Only used when this sign-up starts a new household; joining keeps the family's.
+    currency: str | None = None
+    timezone: str | None = None
+    fy_start_month: int | None = Field(default=None, ge=1, le=12)
+
+    @field_validator("currency")
+    @classmethod
+    def _currency(cls, v: str | None) -> str | None:
+        return None if v is None else check_currency(v)
+
+    @field_validator("timezone")
+    @classmethod
+    def _timezone(cls, v: str | None) -> str | None:
+        return None if v is None else check_timezone(v)
 
 
 class LoginIn(BaseModel):
@@ -295,6 +310,12 @@ async def register(
         invite.accepted_at = _now()
     else:
         household = Household(name=body.household_name)
+        if body.currency:
+            household.currency = body.currency
+        if body.timezone:
+            household.timezone = body.timezone
+        if body.fy_start_month:
+            household.fy_start_month = body.fy_start_month
         session.add(household)
         await session.flush()
         await seed_categories(session, household.id)

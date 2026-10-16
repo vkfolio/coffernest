@@ -15,6 +15,7 @@ from coffernest import db
 from coffernest.config import get_settings
 from coffernest.enums import Direction
 from coffernest.models import Household, Notification, RecurringRule, Transaction
+from coffernest.money import format_money
 from coffernest.services import insights, push, recurring
 
 log = logging.getLogger("coffernest.worker")
@@ -22,8 +23,8 @@ TICK_S = 15 * 60
 REMIND_HOUR = 8  # local time; reminders go out from 08:00
 
 
-def _fmt(amount: object) -> str:
-    return f"₹{amount:,.0f}"
+def _fmt(amount: object, currency: str) -> str:
+    return format_money(amount, currency)
 
 
 async def materialize_all(today: date) -> int:
@@ -75,9 +76,9 @@ async def remind(today: date) -> int:
                     continue
                 ref = item["transaction_id"] or item["statement_id"]
                 key = f"due:{ref}:{due.isoformat()}:{key_part}"
-                body = _fmt(item["amount"])
+                body = _fmt(item["amount"], household.currency)
                 if item.get("min_due"):
-                    body += f" · minimum {_fmt(item['min_due'])}"
+                    body += f" · minimum {_fmt(item['min_due'], household.currency)}"
                 result = await session.execute(
                     insert(Notification)
                     .values(

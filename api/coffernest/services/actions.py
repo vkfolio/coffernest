@@ -18,7 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from coffernest.deps import Ctx
 from coffernest.enums import Direction, TxnStatus
-from coffernest.models import Extraction, ExtractionItem, RecurringRule, Transaction
+from coffernest.models import Extraction, ExtractionItem, Household, RecurringRule, Transaction
+from coffernest.money import format_money
 from coffernest.services import card_loans, categorize, inbox, live
 
 
@@ -227,6 +228,8 @@ async def review_inbox(
         )
     ).all()
     wanted = set(item_ids or [])
+    household = await session.get(Household, ctx.household_id)
+    currency = household.currency if household else "INR"
     done: list[str] = []
     labels: list[str] = []
     failed: list[str] = []
@@ -245,7 +248,7 @@ async def review_inbox(
             item.state = "skipped"
         await session.commit()
         done.append(str(item.id))
-        labels.append(_item_label(item))
+        labels.append(_item_label(item, currency))
     await inbox.refresh_status(session, ext)
     return {
         "approved" if approve else "skipped": len(done),
@@ -255,12 +258,12 @@ async def review_inbox(
     }
 
 
-def _item_label(item: ExtractionItem) -> str:
+def _item_label(item: ExtractionItem, currency: str = "INR") -> str:
     p = item.payload
     name = p.get("payee") or p.get("name") or p.get("card_name") or p.get("lender") or item.kind
     amount = p.get("amount") or p.get("total_due") or p.get("outstanding") or ""
     try:
-        shown = f" ₹{Decimal(str(amount)):,.0f}" if amount else ""
+        shown = f" {format_money(Decimal(str(amount)), currency)}" if amount else ""
     except (InvalidOperation, ValueError):
         shown = ""
     kind = {

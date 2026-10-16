@@ -44,8 +44,9 @@ from coffernest.security.tokens import (
 )
 from coffernest.services import live, skills
 
-INSTRUCTIONS = """Coffernest holds one Indian household's money: bank accounts, salary, loans
-(home/personal/car), credit cards and card EMIs, repeating bills, school fees. Amounts are INR.
+INSTRUCTIONS = """Coffernest holds one household's money: bank accounts, salary, loans
+(home/personal/car), credit cards and card EMIs, repeating bills, school fees. Amounts are in
+the household's own currency (get_overview returns its code, e.g. INR or USD).
 Every number comes from the household's own ledger via these tools; call them rather than
 estimating. For planning questions, load a playbook with get_skill (see list_skills) and follow
 it. To set the books up, use add_account, add_loan and add_card (names and the last 4 digits

@@ -31,6 +31,38 @@ async def test_register_login_me(anon: httpx.AsyncClient) -> None:
     assert any(c["name"] == "School fees" for c in cats.json())
 
 
+async def test_register_sets_currency_and_household_patch(anon: httpx.AsyncClient) -> None:
+    await register(anon, currency="usd", timezone="America/New_York", fy_start_month=1)
+    h = (await anon.get(f"{API}/household")).json()
+    assert (h["currency"], h["timezone"], h["fy_start_month"]) == ("USD", "America/New_York", 1)
+    res = await anon.patch(
+        f"{API}/household", json={"currency": "EUR", "timezone": "Europe/Berlin"}
+    )
+    assert res.status_code == 200, res.text
+    assert (res.json()["currency"], res.json()["fy_start_month"]) == ("EUR", 1)
+    for bad in ({"currency": "EURO"}, {"timezone": "Europe/Atlantis"}, {"fy_start_month": 13}):
+        assert (await anon.patch(f"{API}/household", json=bad)).status_code == 422
+    assert (await anon.patch(f"{API}/household", json={"currency": None})).status_code == 200
+    assert (await anon.get(f"{API}/household")).json()["currency"] == "EUR"
+
+
+async def test_register_defaults_to_inr(anon: httpx.AsyncClient) -> None:
+    await register(anon)
+    h = (await anon.get(f"{API}/household")).json()
+    assert (h["currency"], h["timezone"], h["fy_start_month"]) == ("INR", "Asia/Kolkata", 4)
+    anon.headers.pop("Authorization")
+    res = await anon.post(
+        f"{API}/auth/register",
+        json={
+            "email": "x@example.com",
+            "password": "correct-horse-battery",
+            "display_name": "X",
+            "currency": "DOLLAR",
+        },
+    )
+    assert res.status_code == 422
+
+
 async def test_web_client_gets_httponly_cookie(anon: httpx.AsyncClient) -> None:
     await register(anon)
     res = await anon.post(
@@ -136,8 +168,10 @@ async def test_invite_flow_and_roles(
         },
     )
     assert closed.status_code == 403
-    spouse = await register(anon, "spouse@example.com", invite_token=token)
+    # Joining keeps the family's currency, whatever the new member's phone uses.
+    spouse = await register(anon, "spouse@example.com", invite_token=token, currency="USD")
     assert spouse["household_id"] == owner["household_id"]
+    assert (await anon.get(f"{API}/household")).json()["currency"] == "INR"
     assert spouse["role"] == "viewer"
     # Viewers can read but not write.
     assert (await anon.get(f"{API}/accounts")).status_code == 200

@@ -33,6 +33,7 @@ from coffernest.models import (
     RecurringRule,
     Transaction,
 )
+from coffernest.money import format_money
 from coffernest.services import debts
 from coffernest.services.amortization import ZERO, q2
 from coffernest.services.balances import balances
@@ -803,6 +804,8 @@ async def notes(
                 }
             )
     # Sinking funds: lumpy bills (school fees, insurance) in the next 6 months.
+    household = await session.get(Household, household_id)
+    currency = household.currency if household else "INR"
     rules = (
         await session.scalars(
             select(RecurringRule).where(
@@ -825,8 +828,9 @@ async def notes(
             {
                 "kind": "sinking_fund",
                 "severity": "info",
-                "title": f"{rule.name}: ₹{rule.amount:,.0f} due {nxt:%d %b}",
-                "body": f"Setting aside ₹{q2(rule.amount / months):,.0f} a month covers it without "
+                "title": f"{rule.name}: {format_money(rule.amount, currency)} due {nxt:%d %b}",
+                "body": f"Setting aside {format_money(q2(rule.amount / months), currency)} a month "
+                "covers it without "
                 "a squeeze.",
                 "evidence": {
                     "rule_id": str(rule.id),

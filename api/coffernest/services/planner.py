@@ -18,6 +18,7 @@ from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 
+from coffernest.money import short_money
 from coffernest.services.amortization import ZERO, Debt, monthly_rate, q2
 
 PATH_IDS = ("clear_cards", "avalanche", "snowball", "invest_sip", "split", "emergency_first")
@@ -117,6 +118,7 @@ def simulate_path(
     sip_return_pct: Decimal,
     emergency_gap: Decimal = ZERO,
     cash_return_pct: Decimal = Decimal("3.5"),
+    currency: str = "INR",
 ) -> PathResult:
     label, description = _label(path_id, debts)
     months = years * 12
@@ -232,7 +234,7 @@ def simulate_path(
                 Milestone(
                     start + relativedelta(months=month),
                     month,
-                    f"Investments reach ₹{_short(mark)}",
+                    f"Investments reach {short_money(mark, currency)}",
                     "corpus",
                 )
             )
@@ -262,16 +264,6 @@ def simulate_path(
         yearly=yearly,
         milestones=milestones,
     )
-
-
-def _short(value: Decimal) -> str:
-    if value >= 10_000_000:
-        return (
-            f"{value / 10_000_000:.0f} Cr"
-            if value % 10_000_000 == 0
-            else f"{value / 10_000_000:.1f} Cr"
-        )
-    return f"{value / 100_000:.0f} L"
 
 
 def best_of(results: Sequence[PathResult]) -> dict[str, str]:

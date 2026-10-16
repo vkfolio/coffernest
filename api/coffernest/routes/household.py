@@ -6,12 +6,13 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import func, select
 
 from coffernest.deps import Owner, Reader, Session, not_found
 from coffernest.enums import Role
 from coffernest.models import Household, Invite, Member, User
+from coffernest.money import check_currency, check_timezone
 from coffernest.routes.auth import pending_invite, remove_files
 from coffernest.security.passwords import verify_password
 from coffernest.security.tokens import new_opaque, sha256
@@ -36,6 +37,20 @@ class HouseholdPatch(BaseModel):
     name: str | None = Field(default=None, max_length=80)
     ai_enabled: bool | None = None
     spend_buffer: int | None = Field(default=None, ge=0, le=10_000_000)
+    # Changing the currency relabels amounts; nothing is converted.
+    currency: str | None = None
+    timezone: str | None = None
+    fy_start_month: int | None = Field(default=None, ge=1, le=12)
+
+    @field_validator("currency")
+    @classmethod
+    def _currency(cls, v: str | None) -> str | None:
+        return None if v is None else check_currency(v)
+
+    @field_validator("timezone")
+    @classmethod
+    def _timezone(cls, v: str | None) -> str | None:
+        return None if v is None else check_timezone(v)
 
 
 class MemberOut(BaseModel):
@@ -94,7 +109,8 @@ async def patch_household(body: HouseholdPatch, ctx: Owner, session: Session) ->
     household = await session.get(Household, ctx.household_id)
     if household is None:
         raise not_found()
-    for key, value in body.model_dump(exclude_unset=True).items():
+    # None means "leave as is": every household column is required.
+    for key, value in body.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(household, key, value)
     await session.commit()
     return household

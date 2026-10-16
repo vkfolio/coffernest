@@ -62,6 +62,7 @@ from coffernest.models import (
     RecurringRule,
     Transaction,
 )
+from coffernest.money import check_currency, check_timezone
 from coffernest.services.backup import _by_depth, _dump, _fk_target, _load
 
 MAX_ROWS = 5000  # per request; a device sends a big first sync in several
@@ -523,6 +524,18 @@ class _Session:
         buffer = values.get("spend_buffer")
         if isinstance(buffer, int) and not isinstance(buffer, bool) and 0 <= buffer <= 10_000_000:
             household.spend_buffer = buffer
+            changed = True
+        for key, check in (("currency", check_currency), ("timezone", check_timezone)):
+            raw = values.get(key)
+            if isinstance(raw, str):
+                try:
+                    setattr(household, key, check(raw))
+                    changed = True
+                except ValueError:
+                    pass
+        fy = values.get("fy_start_month")
+        if isinstance(fy, int) and not isinstance(fy, bool) and 1 <= fy <= 12:
+            household.fy_start_month = fy
             changed = True
         if changed:
             household.updated_at = when

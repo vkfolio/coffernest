@@ -19,10 +19,11 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from coffernest.ai.service import SYSTEM
+from coffernest.ai.service import SYSTEM, currency_rule
 from coffernest.ai.tools import BY_NAME, Tool, _plain
 from coffernest.deps import Ctx
 from coffernest.models import ChatMessage
+from coffernest.money import currency_symbol
 from coffernest.services import actions, skills
 
 HISTORY_TURNS = 20
@@ -48,7 +49,7 @@ Files and changes:
 - Files the household attaches are read for you; their text, what was found in them and what
   was already added to the books appear under "Attached files". Talk about them like a person
   who has read them. Pending items are waiting for the household's approval.
-- When the household asks you to record something ("add this bill", "note I paid ₹500 cash for
+- When the household asks you to record something ("add this bill", "note I paid 500 cash for
   milk", "add the pending ones", "set up the school fee as quarterly"), do it with the tools
   (add_transaction, add_recurring_bill, review_inbox_items), and set up the books with
   add_account, add_loan and add_card ("add my Axis salary account", "add my SBI home loan").
@@ -75,6 +76,7 @@ class TurnState:
     ctx: Ctx | None = None
     blocks: list[dict[str, Any]] = field(default_factory=list)
     skills_used: list[str] = field(default_factory=list)
+    currency: str = "INR"
 
     def action(self, title: str, detail: str, undo: dict[str, Any] | None) -> None:
         self.blocks.append(
@@ -331,12 +333,14 @@ def chat_tools(state: TurnState) -> list[Tool]:
             except actions.ActionError as exc:
                 await session.rollback()
                 return {"error": str(exc)}
-            state.action(title.format(**out), detail.format(**out), out["undo"])
+            # {sym} in a template is the household's currency symbol.
+            sym = currency_symbol(state.currency)
+            state.action(title.format(**out, sym=sym), detail.format(**out, sym=sym), out["undo"])
             return {k: v for k, v in out.items() if k != "undo"}
 
         async def add_account(session: AsyncSession, hid: uuid.UUID, args: dict[str, Any]) -> Any:
             return await setup(
-                "add_account", args, session, "New account: {name}", "Balance ₹{balance}"
+                "add_account", args, session, "New account: {name}", "Balance {sym}{balance}"
             )
 
         async def add_person(session: AsyncSession, hid: uuid.UUID, args: dict[str, Any]) -> Any:
@@ -379,12 +383,16 @@ def chat_tools(state: TurnState) -> list[Tool]:
                 args,
                 session,
                 "New loan: {name}",
-                "EMI ₹{emi}, paid from {emi_auto_entry_from}",
+                "EMI {sym}{emi}, paid from {emi_auto_entry_from}",
             )
 
         async def add_card(session: AsyncSession, hid: uuid.UUID, args: dict[str, Any]) -> Any:
             return await setup(
-                "add_card", args, session, "New card: {name}", "Limit ₹{limit}, owed ₹{owed}"
+                "add_card",
+                args,
+                session,
+                "New card: {name}",
+                "Limit {sym}{limit}, owed {sym}{owed}",
             )
 
         writes += [
@@ -612,9 +620,13 @@ def chat_tools(state: TurnState) -> list[Tool]:
     ]
 
 
-async def system_prompt(session: AsyncSession, household_id: uuid.UUID) -> str:
+async def system_prompt(
+    session: AsyncSession, household_id: uuid.UUID, currency: str = "INR"
+) -> str:
     enabled = await skills.enabled_skills(session, household_id)
-    return CHAT_SYSTEM.replace("{skills}", skills.index_text(enabled) or "(none)")
+    return CHAT_SYSTEM.replace("{currency}", currency_rule(currency)).replace(
+        "{skills}", skills.index_text(enabled) or "(none)"
+    )
 
 
 async def files_context(

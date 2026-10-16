@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from coffernest.enums import AccountKind, PrepayMode
-from coffernest.models import Account, CreditCard, Loan
+from coffernest.models import Account, CreditCard, Household, Loan
 from coffernest.services import amortization as am
 from coffernest.services import debts, insights, planner, skills
 from coffernest.services.balances import balances
@@ -57,6 +57,11 @@ def to_json(value: Any) -> str:
     return json.dumps(_plain(value), ensure_ascii=False)
 
 
+async def _currency(session: AsyncSession, hid: uuid.UUID) -> str:
+    household = await session.get(Household, hid)
+    return household.currency if household else "INR"
+
+
 async def _overview(session: AsyncSession, hid: uuid.UUID, _: dict[str, Any]) -> Any:
     today = date.today()
     start, end = insights.month_bounds(today)
@@ -64,6 +69,7 @@ async def _overview(session: AsyncSession, hid: uuid.UUID, _: dict[str, Any]) ->
     load = await insights.debt_load(session, hid, today)
     return {
         "today": today,
+        "currency": await _currency(session, hid),
         "safe_to_spend": {k: v for k, v in sts.__dict__.items() if k != "lines"},
         "this_month_so_far": (await insights.flow(session, hid, start, today, False)).__dict__,
         "this_month_projected": (await insights.flow(session, hid, start, end, True)).__dict__,
@@ -198,6 +204,8 @@ async def _anomalies(session: AsyncSession, hid: uuid.UUID, _: dict[str, Any]) -
 
 
 async def _tax(session: AsyncSession, hid: uuid.UUID, _: dict[str, Any]) -> Any:
+    if await _currency(session, hid) != "INR":
+        return {"note": "80C and 24(b) are Indian tax rules; this household doesn't use INR."}
     out = await insights.tax_summary(session, hid, date.today())
     out["loans"] = [{k: v for k, v in r.items() if k != "loan_id"} for r in out["loans"]]  # type: ignore[attr-defined]
     return out
@@ -283,8 +291,9 @@ async def _compare(session: AsyncSession, hid: uuid.UUID, args: dict[str, Any]) 
     gap = am.ZERO
     if cover is not None and 0 < cover < 6:
         gap = am.q2(sts.liquid / cover * (6 - cover))
+    currency = await _currency(session, hid)
     results = [
-        planner.simulate_path(pid, items, monthly, lump, years, today, sip, gap)
+        planner.simulate_path(pid, items, monthly, lump, years, today, sip, gap, currency=currency)
         for pid in paths[:6]
         if pid in planner.PATH_IDS or pid.startswith("prepay:")
     ]

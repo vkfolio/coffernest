@@ -33,10 +33,13 @@ _MONTHS = {
 }
 _FILLER = {
     "spent", "spend", "paid", "pay", "bought", "buy", "for", "on", "rs", "inr", "rupees",
+    "usd", "eur", "gbp", "dollars", "euros", "pounds",
     "rupee", "of", "the", "a", "an", "to", "at", "today", "yesterday", "and", "my", "in",
 }  # fmt: skip
 _AMOUNT = re.compile(
-    r"(?:₹|rs\.?|inr)?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*(k|thousand|l|lakh|lakhs)?\b", re.I
+    r"(?:₹|rs\.?|inr|\$|€|£|usd|eur|gbp|aud|cad|sgd)?\s*(\d[\d,]*(?:\.\d{1,2})?)"
+    r"\s*(k|thousand|l|lakh|lakhs)?\b",
+    re.I,
 )
 _DAY_MONTH = re.compile(r"\b(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]{3,9})\b", re.I)
 _MONTH_DAY = re.compile(r"\b([a-z]{3,9})\s+(\d{1,2})(?:st|nd|rd|th)?\b", re.I)

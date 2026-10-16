@@ -77,6 +77,15 @@ def test_check_amounts() -> None:
     assert check_amounts("A ₹50 coffee", outputs) == []  # tiny amounts are ignored
 
 
+def test_check_amounts_other_currencies() -> None:
+    outputs = [json.dumps({"emi": 1842.5, "owed": 1240000.0, "free": 2310.0})]
+    assert check_amounts("The EMI is $1,843 and you owe $1.24M; $2,310 is free.", outputs) == []
+    assert check_amounts("Rent is €1,842.50 and €2.3K is free", outputs) == []
+    assert check_amounts("Put €9,000 aside", outputs) == ["€9,000"]
+    assert check_amounts("Save USD 7,500", outputs) == ["USD 7,500"]
+    assert check_amounts("Try 5000 steps", outputs) == []  # not a currency code
+
+
 async def test_suggestions_need_household_opt_in(ai_client: httpx.AsyncClient) -> None:
     res = await ai_client.post(f"{API}/ai/suggestions/refresh")
     assert res.status_code == 403

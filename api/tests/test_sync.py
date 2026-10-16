@@ -296,6 +296,25 @@ async def test_worker_bookkeeping_is_not_an_edit(client: httpx.AsyncClient) -> N
     assert rule["id"] not in _ids(again, "recurring_rule")
 
 
+async def test_household_settings_push(client: httpx.AsyncClient) -> None:
+    sent = {
+        "name": "Home",
+        "currency": "usd",
+        "timezone": "America/Chicago",
+        "fy_start_month": 1,
+        "updated_at": "2099-01-01T00:00:00+00:00",
+    }
+    out = await _sync(client, household=sent)
+    assert out["household"]["currency"] == "USD"
+    assert out["household"]["timezone"] == "America/Chicago"
+    assert out["household"]["fy_start_month"] == 1
+    # Bad values are skipped, like the other household fields.
+    bad = {"currency": "XX", "timezone": "Nowhere/Land", "fy_start_month": 0}
+    out = await _sync(client, household={**bad, "updated_at": "2099-01-02T00:00:00+00:00"})
+    assert out["household"]["currency"] == "USD"
+    assert out["household"]["timezone"] == "America/Chicago"
+
+
 async def test_too_many_rows_at_once(client: httpx.AsyncClient) -> None:
     rows = [_account() for _ in range(5001)]
     res = await client.post(f"{API}/sync", json={"client_id": PHONE, "changes": {"account": rows}})
