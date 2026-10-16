@@ -1,0 +1,130 @@
+---
+title: Family members
+description: Share one set of books on a Coffernest server, add family members by email, and understand what admins and members can do.
+sidebar:
+  order: 1
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import family from '~/assets/shots/family.png';
+import addMember from '~/assets/shots/add-member.png';
+import profile from '~/assets/shots/profile.png';
+
+On a Coffernest server, your whole family can share one set of books. Each person signs in with their own email and password, and everyone sees the same accounts, entries and bills. One person is the household's admin, who adds and removes the others.
+
+<Aside type="note">
+Family members need a Coffernest server. If you use Coffernest on this iPhone only, **Settings › Household** says so under **Family**. To track spending for your kids or parents without giving them a login, see [People in your books](/family/people/).
+</Aside>
+
+## The first account is the admin
+
+When nobody has signed up on a server yet, the sign-in screen shows **Set up this server** instead of **Sign up**. The person who signs up first becomes the server's admin and starts the first household.
+
+If the server has a demo account, that doesn't count. The first real person to sign up is still the admin.
+
+<Aside type="caution">
+Sign up as soon as your server is running. Until someone does, whoever reaches the server first becomes its admin.
+</Aside>
+
+After that, the server is closed to strangers. Someone can only sign up if the admin has added their email first, unless the person who runs the server has chosen to open sign-ups to anyone.
+
+## Add a family member
+
+<Steps>
+1. Go to **Settings › Household**.
+2. Under **Family**, tap **Add family member**.
+3. Enter **Their email** and tap **Add**.
+</Steps>
+
+Coffernest shows "Added their email. Ask them to sign up with it." The email appears under **Family** with **Not signed up yet** until they do. Coffernest doesn't send an email or an invitation link, so tell them yourself.
+
+<Shots items={[
+  { src: family, caption: 'Settings › Household' },
+  { src: addMember, caption: 'Add family member' },
+]} />
+
+A few things to know:
+
+- The email must not already have an account on the server. If it does, you'll see "That person already has a Coffernest account on this server."
+- An added email stays open until the person signs up, or until you remove it. It doesn't expire.
+- To take back an email before they sign up, swipe left on it and tap **Remove**.
+
+## How they join
+
+The family member does this on their own iPhone:
+
+<Steps>
+1. Install Coffernest and, on the first screen, tap **Connect to a server**.
+2. Enter the server's address, for example `https://money.example.com`, and tap **Save**.
+3. Tap **Sign up**.
+4. Enter **Your name**, the **Email** you added, and a **Password** of at least 10 characters.
+5. Tap **Sign up**.
+</Steps>
+
+They join your household straight away and see the same books as you. They don't start a household of their own, and they use your household's currency and financial year. They can also sign up on the server's website with the same email.
+
+If they see "Ask your family's admin to add this email first", the email they typed doesn't match the one you added. Check the spelling on both sides.
+
+## Roles
+
+Each person in a household has a role. You can see everyone's in **Settings › Household** under **Family**, and your own under your name at the top of **Settings**.
+
+| Role | Who | What they can do |
+|---|---|---|
+| **Admin** | The person who started the household. | Everything, including the household's settings, adding and removing family, backups and deleting the household. |
+| **Member** | Everyone the admin adds from the app. | Add and change entries, accounts, bills, loans, cards, categories and people. Upload statements and attach receipts. |
+| **View only** | Someone the admin has given read-only access. | See everything, but not change anything. |
+
+The app always adds people as members, and doesn't change roles. To make someone view only, the admin changes their role through the server's API, where the roles are called owner, adult and viewer. See [API endpoints](/api/endpoints/).
+
+### What only the admin can do
+
+Members can do almost everything with the books themselves. These are kept for the admin:
+
+- Change the household's name, safe-to-spend buffer, currency and financial year. See [Currency and region](/app/currency/).
+- Add and remove family members.
+- Make and restore encrypted backups in **Settings › Backup**.
+- Create API tokens for other apps in **Settings › Connections**.
+- Delete the household.
+
+## Family members never pay
+
+Only the admin needs the free trial or the one-time unlock. Everyone the admin adds uses Coffernest free, for as long as they're in the household, and can always add and change entries. **Settings** reminds the admin of this: "Family members you add use Coffernest free." See [Pricing](/start/pricing/).
+
+## Remove a family member
+
+<Steps>
+1. Go to **Settings › Household**.
+2. Under **Family**, swipe left on the person and tap **Remove**.
+</Steps>
+
+They can no longer see the household's books. Everything they added stays in your books, and their name stays in **Settings › People**, so spending you tagged for them still adds up. You can't remove yourself.
+
+Their sign-in still exists on the server, so the same email can't be added again later. If you remove someone by mistake, they'd need to sign up with a different email.
+
+## Leave a household
+
+There's no separate "leave" button. A member can leave in either of these ways:
+
+- Ask the admin to remove them.
+- Delete their own account: go to **Settings**, tap your name, then **Delete account**, and enter your password. This deletes their sign-in on the server. Entries they added stay in the household's books.
+
+<Shots items={[{ src: profile, caption: 'Profile' }]} />
+
+If you're the admin and other people still use the household, you can't delete your own account, because the household would be left without an admin. Remove the other members first, or delete the whole household.
+
+## Delete the household
+
+Only the admin can do this.
+
+<Steps>
+1. Go to **Settings › Household**.
+2. Tap **Delete household** at the bottom.
+3. Enter your password and tap **Delete household**.
+</Steps>
+
+Every entry, account, bill, loan, card, file and member of the household is deleted, for good. Members who aren't in another household lose their sign-in too. Make a backup first in **Settings › Backup** if you might want any of it.
+
+<Aside type="caution">
+This can't be undone.
+</Aside>

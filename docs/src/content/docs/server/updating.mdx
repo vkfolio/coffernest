@@ -1,0 +1,124 @@
+---
+title: Updating
+description: Move your Coffernest server to a new release, how database migrations run, and how to go back if something goes wrong.
+sidebar:
+  order: 6
+---
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Updating means getting the new code or image and recreating the API container. The database is brought up to date by the server itself as it starts.
+
+## Before you update
+
+Take a database dump, so you can go back if you need to:
+
+```bash
+docker compose exec -T postgres pg_dump -U coffernest -Fc coffernest > before-update-$(date +%F).dump
+```
+
+Note which version you're on. `/api/v1/meta` shows it:
+
+```bash
+curl -s http://localhost:8080/api/v1/meta
+```
+
+Look for `"version"` in the answer, for example `"version":"0.2.0"`. Release notes are on the [GitHub releases page](https://github.com/vkfolio/coffernest/releases).
+
+## Update
+
+<Tabs>
+<TabItem label="Ready-made image">
+If `docker-compose.yml` uses `image: ghcr.io/vkfolio/coffernest:latest`:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+To stay on a known release instead of `latest`, use a version tag such as `:0.2.0`, or `:0.2` to follow fixes within that release line. Change the tag, then run the same two commands.
+</TabItem>
+<TabItem label="Build from source">
+If you build the image yourself:
+
+```bash
+git pull
+docker compose up -d --build
+```
+</TabItem>
+</Tabs>
+
+`docker compose pull` also fetches newer Postgres 16 and MinIO images when there are any.
+
+## How migrations run
+
+The container starts with `coffernest api`, which applies any new database migrations first and only then starts serving. Migrations only ever move forward to the newest version. If one fails, the API doesn't start, the container restarts, and the error is in the logs:
+
+```bash
+docker compose logs --tail 100 api
+```
+
+You can also run them on their own, for example to see the output before starting the API:
+
+```bash
+docker compose run --rm api coffernest migrate
+```
+
+To see which migration the database is on:
+
+```bash
+docker compose exec postgres psql -U coffernest -c "select version_num from alembic_version"
+```
+
+## Check it worked
+
+<Steps>
+
+1. Wait for the container to report healthy. The image checks `/health` every 30 seconds.
+
+   ```bash
+   docker compose ps
+   ```
+
+2. Ask the server directly.
+
+   ```bash
+   curl http://localhost:8080/health
+   ```
+
+   `{"ok":true,"db":true,"s3":true}` means the API is up and can reach both the database and the bucket. A 503 with `false` for either one tells you which part to look at.
+
+3. Check that `/api/v1/meta` shows the new version. In the app, **Settings › Server › Check connection** should show a response time.
+
+</Steps>
+
+## Go back to the previous version
+
+A newer release may have changed the database, and an older release can't always read it. The safe way back is the dump you took before updating.
+
+<Steps>
+
+1. Stop the API.
+
+   ```bash
+   docker compose stop api
+   ```
+
+2. Load the dump you took before updating. This replaces the database's contents, so anything entered since the update is lost.
+
+   ```bash
+   docker compose exec -T postgres pg_restore -U coffernest -d coffernest --clean --if-exists < before-update-2026-10-16.dump
+   ```
+
+3. Point `docker-compose.yml` at the previous version, for example `ghcr.io/vkfolio/coffernest:0.2.0`, or check out the previous release tag with `git checkout` if you build from source.
+
+4. Start it again and check `/health`.
+
+   ```bash
+   docker compose up -d
+   ```
+
+</Steps>
+
+<Aside type="note">
+Files in the bucket aren't touched by updates, so there's nothing to roll back there.
+</Aside>

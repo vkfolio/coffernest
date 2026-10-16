@@ -1,0 +1,81 @@
+---
+title: People in your books
+description: Add your kids, parents and others as people, tag spending for them, and see what each person costs, without giving anyone a login.
+sidebar:
+  order: 2
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import people from '~/assets/shots/people.png';
+
+People are the members of your family as they appear in your books: you, your partner, your kids, your parents. Tag an expense for someone and Coffernest shows what each person costs, such as a child's school fees or a parent's medicines over the year. People don't need a login, and you don't need a server to use them.
+
+## People and family members
+
+Coffernest has two separate ideas, and it helps to keep them apart.
+
+| | People | Family members |
+|---|---|---|
+| What they are | Names you tag spending with | People who sign in to the same books |
+| Need a login | No | Yes, their own email and password |
+| Need a server | No | Yes |
+| Where | **Settings › People** | **Settings › Household**, under **Family** |
+| Examples | A child, a grandparent | You and your partner, each on your own iPhone |
+
+When someone signs up on a server, as the admin or as a family member, Coffernest adds them to **People** with their first name, so you can tag spending for them straight away. Everyone else, such as your kids, you add yourself.
+
+To let someone sign in and add entries, see [Family members](/family/members/).
+
+## Add a person
+
+<Steps>
+1. Go to **Settings › People**.
+2. Tap **Add a person**.
+3. Enter a **Name** and choose a **Relation**: **Child**, **Spouse**, **Parent**, **Me** or **Other**.
+4. Pick a **Colour**. It's used for the person's tag and in charts.
+5. Tap **Save**.
+</Steps>
+
+You can also add someone while you're adding an entry: tap **+** at the end of the **For** row in Quick Add.
+
+In the list, each person shows their relation, such as **Child** or **Parent**. You appear as **You**.
+
+## Tag spending for someone
+
+When you have at least one person, Quick Add shows a **For** row when you add an expense. Tap the person it was for. Leave it on **Everyone** for spending that's shared, such as rent or groceries.
+
+You can also:
+
+- Tag an existing entry: open it from **Activity**, tap **Edit**, and choose someone under **For**.
+- Type it the way you'd say it in Quick Add, for example "aarav uniform 1200". Coffernest picks out the person, the category and the amount for you to check.
+- Sort several past entries at once with **Help me sort**, which also has a **For** row. See [Spending](/app/spending/).
+
+Only money going out is tagged for a person. Income isn't.
+
+<Aside type="tip">
+When you correct the category or person on an entry, Coffernest can learn from it. The next entry from the same place is sorted the same way, including who it was for. You can see and forget these in **Settings › Auto-sort rules**.
+</Aside>
+
+## See what each person costs
+
+Go to the **Spending** tab. Under **Where it went**, the **Who it was for** section lists each person with what was spent for them in the period you've chosen, and **Everyone** for shared spending.
+
+Tap a person to see their own page: their total, which categories it went on, and how it compares with the period before. From there you can open the list of entries behind it.
+
+<Shots items={[{ src: people, caption: 'Settings › People' }]} />
+
+To find a person's entries in **Activity**, use the **For** filter at the top.
+
+## Change or archive a person
+
+Tap a person in **Settings › People** to change their name, relation or colour.
+
+If someone no longer needs their own tag, tap **Archive** at the bottom. Archived people move to an **Archived** section and stop appearing in Quick Add, but entries already tagged for them keep their tag and still count in Spending. To bring someone back, swipe left on them under **Archived** and tap **Restore**.
+
+People can't be deleted, so your past spending always keeps who it was for.
+
+## Who can change people
+
+Anyone who can add entries can add, change and archive people: the admin and members on a server, or you on this iPhone. Someone with view-only access sees the list but can't change it.
+
+If an admin removes a family member from the household, that person stays in **People**, along with everything tagged for them.

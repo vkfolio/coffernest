@@ -1,0 +1,117 @@
+---
+title: Statements and receipts
+description: Upload bank and card statement PDFs to your server, check what Coffernest read, and attach bills and receipts to entries.
+sidebar:
+  order: 9
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import inbox from '~/assets/shots/inbox.png';
+
+With a Coffernest server, you can upload a bank or card statement and let Coffernest fill in your books from it. Entries it's sure about go straight in. Anything unclear waits in **Statements to check** for you to look over. You can also keep bills and receipts with the entries they belong to.
+
+<Aside type="note">
+Statements, receipts and documents need a Coffernest server. If you use Coffernest on this iPhone only, add entries in the app instead. You can [sync your books with a server](/app/sync/) later, but statements and attachments stay on the server and aren't copied back to the iPhone.
+</Aside>
+
+## Before you start
+
+A statement is read by the AI model that your server is set up to use. Two things need to be true:
+
+- Whoever runs your server has turned on an AI provider for it. See [AI on your server](/ai/server-ai/).
+- You've allowed your server's assistant to read your files. The first time you upload from the app, Coffernest asks **Use your server's assistant?** and lists what it will receive, including **The statement files you upload**. Tap **Allow** to go ahead. If you tap **Not now**, nothing is uploaded.
+
+If the server's assistant is off, the file shows **Couldn't read** with the message "Turn on the assistant in Settings so files can be read."
+
+## Upload from the app
+
+<Steps>
+1. Open **Statements to check**. It's in **Settings**, and in the **More** menu (the three dots) on the **Activity** tab.
+2. Tap **+** (Upload PDF) at the top right.
+3. Choose one or more files. You can pick PDFs, images such as a photo or screenshot of a bill, and CSV files.
+</Steps>
+
+Coffernest shows "Uploaded. Reading it now." Most statements are read in under a minute. You can leave the screen; when something needs your attention, Home shows a row such as **1 statement to check**.
+
+## Share a PDF from Mail or Files
+
+You don't need to open Coffernest to send a statement.
+
+<Steps>
+1. In Mail, Files or any app that shows the PDF, tap the share button.
+2. Choose **Coffernest**. A **Statement inbox** sheet opens with the file name.
+3. Tap **Upload**.
+</Steps>
+
+You'll see "Added to your statement inbox. Coffernest is reading it now." The share sheet only accepts PDFs. If you haven't yet allowed your server's assistant, the sheet asks you to add one statement from **Statements to check** in the app first. After that, sharing works from anywhere.
+
+<Shots items={[{ src: inbox, caption: 'Statements to check' }]} />
+
+## What the statuses mean
+
+Each file in **Statements to check** shows where it's up to:
+
+| Status | Meaning |
+|---|---|
+| **Waiting** | In the queue. Files are read one at a time. |
+| **Reading** | Coffernest is reading the pages. |
+| **Locked** | The PDF has a password. |
+| **Couldn't read** | Something went wrong. Open the file to see why, then tap **Try again**. |
+| **3 to check** | Read, with entries waiting for you. |
+| **Ready** | Read, and nothing needs checking. |
+| **Done** | Everything from this file is dealt with. |
+
+### Locked PDFs
+
+Many banks protect statements with a password. Open the file, type the password and tap **Open the file**. Most banks use your date of birth or the last four digits of the card. Your server remembers the password, encrypted, and tries it on the next statement, so you usually only type it once.
+
+## Check what was read
+
+Tap a file to see everything Coffernest found in it. At the top is a short summary. Use **All**, **To check** and **In books** to filter the list.
+
+Each row shows the payee, date, category and amount, with a label:
+
+- **Auto-read**: Coffernest was sure and added it.
+- **To check**: waiting for you.
+- **Added**: you approved it.
+- **Already in books**: it matches an entry you already have, so it wasn't added again.
+- **Skipped**: you chose not to add it.
+
+For a row that's **To check**, you can tap **Choose a category** or **Choose the account** to fill in what's missing. Then:
+
+- Swipe right and tap **Approve** to add one entry.
+- Swipe left and tap **Skip** to leave it out.
+- Tap **Approve 12** (with your own count) at the bottom to add everything that's waiting.
+
+Changed your mind about something that was added? Swipe left on it and tap **Take it out**.
+
+A statement can hold more than entries. Coffernest may also find a card statement's total and due date, a loan, or a repeating bill such as rent, and offer to add those too.
+
+### Undo or remove a file
+
+- **Undo what this file added** takes out every entry that came from this file, and leaves the file in the list.
+- **Remove the file** deletes the file. Entries it added stay in your books.
+
+## Attach bills and receipts
+
+You can keep a receipt, bill or warranty card with the entry it belongs to.
+
+<Steps>
+1. Open the entry from **Activity**.
+2. Under **Attachments**, tap **Add attachment**.
+3. Choose **Photo** to pick from your photo library, **Scan** to use the camera, or **File** to pick a PDF or image from Files.
+</Steps>
+
+**Scan** opens the iPhone's document scanner. You can scan several pages, and they're saved together as one PDF. Tap an attachment to open it, or swipe left and tap **Delete** to remove it.
+
+Attachments are files you keep. Coffernest doesn't read them to change your books; to have a bill read, upload it to **Statements to check** instead.
+
+## All your documents
+
+**Settings › Documents** lists every file you've attached or uploaded, with its type, date and size. Search by file name, tap **+** to upload a PDF or image that isn't tied to an entry, or swipe left on a file and tap **Delete**.
+
+Backups made from **Settings › Backup** include your documents unless you turn off **Include documents**.
+
+## Who can do what
+
+Admins and members can upload statements, approve entries and add attachments. Someone with view-only access can open files and see what was read, but can't upload, approve or delete. See [Family members](/family/members/).

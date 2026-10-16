@@ -1,0 +1,87 @@
+---
+title: Currency and region
+description: Set your household's currency and financial year, and see how Coffernest lays out amounts in your own number style.
+sidebar:
+  order: 12
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import currency from '~/assets/shots/currency.png';
+
+Your household keeps its books in one currency. Coffernest shows every amount in that currency, laid out the way your iPhone writes numbers, so an Indian phone shows lakh and crore and most other phones show thousands and millions. You can also choose the month your financial year starts.
+
+## What's set when you start
+
+When you start new books, Coffernest uses your iPhone's settings:
+
+- **Currency**: the currency your iPhone is set to.
+- **Financial year**: April if your iPhone's region is India, otherwise January.
+
+This is the same whether you choose **Use on this iPhone** or set up a new household on a server. If you join a family on a server, you use the currency and year the admin already set.
+
+## Change the currency
+
+<Steps>
+1. Go to **Settings › Household**.
+2. Tap **Currency**. Your iPhone's own currency is at the top of the list.
+3. Search or scroll, then tap the currency you want.
+</Steps>
+
+Coffernest confirms with a message such as "Amounts now show in USD."
+
+<Aside type="caution">
+Changing the currency doesn't convert anything. Every amount keeps its number and only the symbol changes, so 1,000 rupees becomes 1,000 dollars. Pick the currency before you add much, or only change it to correct a mistake.
+</Aside>
+
+Coffernest uses one currency per household. It doesn't track accounts in other currencies or convert between them.
+
+<Shots items={[{ src: currency, caption: 'Currency' }]} />
+
+### When the currency is INR
+
+Some features are only for households that use Indian rupees, because they follow Indian rules:
+
+- The [tax summary](/app/tax/) for 80C, 24(b) and 80E, and the **Tax benefits** row on a loan.
+- The **Tax** choice on the **Spending** tab. Other currencies see **Checks** there instead.
+
+Everything else, including bills, EMIs, loans, cards and net worth, works the same in any currency.
+
+## How amounts are written
+
+The currency belongs to the household, but the number style belongs to you. Coffernest lays out amounts using your iPhone's region, so two people in the same household can see the same figure written their own way.
+
+| Your iPhone's region and currency | Full amount | Short form (widgets, charts) |
+|---|---|---|
+| India, INR | ₹12,34,567 | ₹12.3L |
+| India, INR | ₹1,23,45,678 | ₹1.2Cr |
+| United States, INR | ₹1,234,567 | ₹1.2M |
+| United States, USD | $1,234,567 | $1.2M |
+| United Kingdom, GBP | £1,234,567 | £1.2m |
+| Germany, EUR | 1.234.567 € | 1,2 Mio. € |
+
+The short forms use your region's own words for large numbers, so an Indian phone says lakh (L) and crore (Cr). Amounts under 1,00,000 (one hundred thousand) are always shown in full. The third row shows the same rupee books on a phone set to the United States: the currency stays the same, and only the layout changes.
+
+Coffernest shows paise, cents and other fractions only when an amount has them. Currencies that have no fractions, such as the yen, are shown in whole units.
+
+With VoiceOver on an Indian phone, rupee amounts are read the way you'd say them, for example "12 lakh 34 thousand 567 rupees".
+
+### Change your number style
+
+The style comes from your iPhone, not from Coffernest. To change it, open the iPhone's **Settings** app and go to **General › Language & Region**, then change **Region** or **Number Format**. Coffernest follows your choice.
+
+## Financial year
+
+The financial year decides:
+
+- The year on the [Tax](/app/tax/) screen, such as **FY 2026–27**.
+- What **This FY** covers when you pick a period on the **Spending** tab.
+
+To change it, go to **Settings › Household** and choose a month for **Financial year starts**. If your year starts in January, Coffernest labels it with the calendar year, such as **2026**. For any other month it shows both years, such as **FY 2026–27**.
+
+## Who can change these
+
+On a server, only the household's admin can change the currency, the financial year, the household name and the safe-to-spend buffer. Everyone else sees them greyed out. See [Family members](/family/members/).
+
+If you use Coffernest on this iPhone only, you're the admin of your own books and can change them at any time.
+
+Number style is different: it's set on each person's own iPhone, so everyone chooses their own.

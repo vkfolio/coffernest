@@ -1,0 +1,49 @@
+---
+title: What Coffernest is
+description: A household money book for iPhone that you fill in yourself, with an optional server you can run for your family.
+sidebar:
+  order: 1
+---
+import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import home from '~/assets/shots/home.png';
+import welcome from '~/assets/shots/welcome.png';
+
+Coffernest keeps your household's money in one place on your iPhone. Open it and you can see what's free to spend this month, what's due, what you own and owe, and where the money went.
+
+<Shots items={[{ src: home, caption: 'Home' }, { src: welcome, caption: 'The first screen' }]} />
+
+## A ledger you fill in
+
+Coffernest records what you enter. You add your accounts, salary, bills, loans and credit cards once, then note spending as it happens. Everything it shows is worked out from those entries.
+
+It never connects to your bank. It doesn't ask for bank passwords, doesn't read your messages and can't move money. When you tap **Record payment** on a card, Coffernest writes an entry in your own books; you still pay the card in your bank's app.
+
+## What it does
+
+<CardGrid>
+  <LinkCard title="Free to spend" href="/app/home/" description="One number on Home: what you can spend until your next income, after bills, EMIs, card dues and your cushion." />
+  <LinkCard title="Quick Add" href="/app/adding/" description="An expense, income or transfer in a few taps, or typed the way you'd say it." />
+  <LinkCard title="Bills and dues" href="/app/dues/" description="Salary and repeating bills show up as expected each time, with reminders before they're due." />
+  <LinkCard title="Accounts, cards and loans" href="/app/accounts/" description="Bank, cash, wallets and investments, card statements and card EMIs, and each loan's EMI schedule." />
+  <LinkCard title="Spending" href="/app/spending/" description="Where the money went, by category and by person, with every entry searchable." />
+  <LinkCard title="Net worth" href="/app/networth/" description="What you own minus what you owe, month by month." />
+  <LinkCard title="Debt and planning" href="/app/planning/" description="Your debt load, a payoff plan, a prepayment simulator and cash flow over time." />
+  <LinkCard title="Three ways to use it" href="/start/ways-to-use/" description="On this iPhone, on a Coffernest server, or with sample data first." />
+</CardGrid>
+
+## Who it's for
+
+Coffernest is built for a household that shares its money: a couple, a family with children, or someone who also looks after their parents. It works well if you want to know where you stand without linking a bank, and you're happy to spend a few seconds noting each spend.
+
+- You can tag spending for a person, so you can see what a child's school or a parent's medicines cost over the year. People you tag don't need a login.
+- If the whole family wants to add entries from their own phones, one person can run a Coffernest server and add the others. See [Family](/family/members/).
+- It's at home with Indian money: lakh and crore, the April to March year, EMIs, card minimum dues, and a home-loan and education-loan tax summary. You can also pick any other currency, and amounts follow your region's number style.
+
+## What it isn't
+
+Coffernest isn't a bank, a payment app or an adviser. It doesn't lend, invest or give regulated financial advice. Free to spend, loan figures, payoff plans and tax figures are estimates worked out from what you enter, to help you plan.
+
+<Aside type="note">
+The Coffernest server is open source under the AGPL-3.0 licence. You can run it at home or in the cloud; see [Install the server](/server/install/). The code is on [GitHub](https://github.com/vkfolio/coffernest).
+</Aside>

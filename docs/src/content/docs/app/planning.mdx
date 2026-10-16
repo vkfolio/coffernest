@@ -1,0 +1,82 @@
+---
+title: Debt and planning
+description: See your debt load, plan which debt to clear first, simulate a loan prepayment and look at cash flow over the months.
+sidebar:
+  order: 7
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import debt from '~/assets/shots/debt.png';
+import payoff from '~/assets/shots/payoff.png';
+import cashflow from '~/assets/shots/cashflow.png';
+
+These screens help you plan: how heavy your debt is, how to clear it sooner, and whether more is coming in than going out.
+
+<Aside type="caution">
+Every figure here is an estimate worked out from the balances, rates and entries you've added. It isn't financial advice. Check anything important with your lender before you act on it.
+</Aside>
+
+<Shots items={[{ src: debt, caption: 'Debt' }, { src: payoff, caption: 'Payoff plan' }, { src: cashflow, caption: 'Money in and out' }]} />
+
+## Debt
+
+Open it from **Accounts › You owe › All debts**, or from **Spending › Tax › Debt and EMIs** (the **Tax** view is called **Checks** outside rupee households).
+
+The top shows everything **You owe** across loans and credit cards, and how much goes to EMIs each month. **What you owe** charts each loan and card.
+
+The next section shows how heavy that is:
+
+- **Your EMIs take N% of your income.** Under 40% is healthy, 40% to 50% is worth watching, and over 50% is high. Lenders call this FOIR, and over 50% makes new loans hard to get.
+- **Your debt equals N years of income.**
+- **How much of your card limits you're using.** Keeping it under 30% helps your credit score.
+
+Income here is your average income over the last three full months. If there isn't any yet, Coffernest uses your repeating income instead.
+
+Below that, **Loans** are listed highest rate first, then **Cards**. Tap one to open it, or tap **Plan payoff** at the bottom.
+
+## Payoff plan
+
+The payoff plan works out the order to clear your debts if you put a fixed extra amount towards them each month.
+
+<Steps>
+1. On the Debt screen, tap **Plan payoff**.
+2. Choose a **Strategy**:
+   - **Avalanche** pays the highest interest rate first. It usually costs the least interest overall.
+   - **Snowball** pays the smallest balance first, so you clear whole debts sooner.
+3. Enter how much **Extra each month** you could put in.
+4. Turn **Include credit cards** off if you only want to plan your loans.
+</Steps>
+
+The plan shows when you'd be **Debt-free by**, the total **Interest**, and how much that saves **Compared with minimums**, in money and months. **Order** lists each debt in the order it's cleared, with the month it ends and the interest paid on it.
+
+Try both strategies with the same extra amount to compare them.
+
+## Prepayment simulator
+
+The simulator shows what paying extra on one loan would save, before you pay it.
+
+<Steps>
+1. Open the loan from **Accounts**.
+2. Tap **What if I pay extra?**.
+3. Enter a **One-time amount**, an **Extra every month**, or both.
+4. Choose whether to use it to **Reduce tenure** or **Reduce EMI**.
+5. Tap **Calculate**.
+</Steps>
+
+You'll see the **Interest saved**, any **Prepayment penalty**, the **Net saving**, and either the **New end date** and **Months saved** or the **New EMI**. The simulation uses the loan's current rate. Nothing is recorded; when you do make the payment, use **Record prepayment** on the loan. See [Accounts, cards and loans](/app/accounts/#prepayments).
+
+## Cash flow
+
+Cash flow compares what came in with what went out, month by month.
+
+Open it from **Accounts › Insights › Cashflow**, or from **Spending › In and out › Cashflow, longer view**.
+
+The headline says how much you kept over the period, or how much more you spent than you earned. Below it you'll see about how much went out each month, a chart of **Received** against **Spent**, and **By month** with the net, money in and money out for each month. Spending here includes loan EMIs. Choose **3 months**, **6 months**, **12 months** or **24 months** from the button at the top right.
+
+**Spending › In and out** shows a shorter, six-month version of the same thing.
+
+### In and out by account
+
+For one month at a time, **In and out by account** shows what was **Received**, **Spent**, paid in **EMIs** and **Moved between accounts**. Switch between **By account**, to see money in and out of each account, and **By kind**, to see it by type of entry. Choose the month from the button at the top right.
+
+Open it from **Accounts › Insights**, or from **Spending › In and out**.

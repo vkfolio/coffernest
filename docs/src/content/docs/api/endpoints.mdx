@@ -1,0 +1,270 @@
+---
+title: Endpoints
+description: Every route on a Coffernest server, grouped by area, with who may call it.
+sidebar:
+  order: 2
+---
+import { Aside } from '@astrojs/starlight/components';
+
+Paths below are relative to `https://your-server/api/v1` unless they start with a different root. For request and response fields, open `/api/v1/docs` on your server.
+
+In the **Who** column, "Member" means any signed-in member, "Owner or adult" excludes viewers, and "Owner" is the household owner only. "Public" needs no sign-in.
+
+## Sign-in and account
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| POST | `/auth/register` | Create an account and sign in | Public |
+| POST | `/auth/login` | Sign in with email, password and, if needed, a two-step code | Public |
+| POST | `/auth/refresh` | Swap a refresh token for a new pair of tokens | Public |
+| POST | `/auth/logout` | End this session | Public |
+| POST | `/auth/logout-all` | End every session for the account | Member |
+| GET | `/auth/me` | Your account | Member |
+| DELETE | `/auth/me` | Delete your account for good (and the household, if nobody else is in it) | Member |
+| GET | `/auth/sessions` | Signed-in devices | Member |
+| DELETE | `/auth/sessions/{family_id}` | Sign one device out | Member |
+| POST | `/auth/password` | Change your password | Member |
+| POST | `/auth/totp/setup` | Start two-step sign-in: secret and `otpauth://` link | Member |
+| POST | `/auth/totp/confirm` | Confirm two-step sign-in with a code; returns recovery codes | Member |
+| POST | `/auth/totp/disable` | Turn two-step sign-in off | Member |
+
+## Household and family
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/household` | Name, currency, time zone, financial-year start and whether AI is on | Member |
+| PATCH | `/household` | Change household settings, including `ai_enabled` | Owner |
+| DELETE | `/household` | Delete every entry, account, file and member for good | Owner |
+| GET | `/household/members` | Members and their roles | Member |
+| PATCH | `/household/members/{member_id}` | Change a member's role | Owner |
+| DELETE | `/household/members/{member_id}` | Remove a member | Owner |
+| GET | `/household/invites` | Emails invited to join | Owner |
+| POST | `/household/invites` | Invite someone by email; they join when they sign up with it | Owner |
+| DELETE | `/household/invites/{invite_id}` | Cancel an invite | Owner |
+| GET | `/people` | People entries can be for, such as children | Member |
+| POST | `/people` | Add a person | Owner or adult |
+| PATCH | `/people/{person_id}` | Change a person | Owner or adult |
+
+## Accounts
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/accounts` | Accounts with balances (`include_inactive=true` for archived ones) | Member |
+| POST | `/accounts` | Add an account | Owner or adult |
+| GET | `/accounts/{account_id}` | One account | Member |
+| PATCH | `/accounts/{account_id}` | Change an account | Owner or adult |
+| DELETE | `/accounts/{account_id}` | Archive an account; its history stays | Owner or adult |
+| GET | `/accounts/{account_id}/number` | Reveal the full account number; every reveal is logged | Owner or adult |
+
+## Transactions
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/transactions` | Entries, filtered by date, account, category, person, text, tag or status, a page at a time | Member |
+| POST | `/transactions` | Add an entry; returns one row, or two for a transfer | Owner or adult |
+| POST | `/transactions/describe` | Turn a plain description ("aarav uniform 1200") into a draft entry. Nothing is saved. | Member |
+| GET | `/transactions/{txn_id}` | One entry | Member |
+| PATCH | `/transactions/{txn_id}` | Change an entry | Owner or adult |
+| DELETE | `/transactions/{txn_id}` | Delete an entry | Owner or adult |
+| POST | `/transactions/{txn_id}/restore` | Undo a delete | Owner or adult |
+| POST | `/transactions/{txn_id}/confirm` | Mark an expected entry as paid or received, optionally with the actual amount and date | Owner or adult |
+| POST | `/transactions/{txn_id}/skip` | Skip one expected entry without changing its bill | Owner or adult |
+
+## Bills and income
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/recurring-rules` | Repeating bills and income | Member |
+| POST | `/recurring-rules` | Add a repeating bill or income | Owner or adult |
+| POST | `/recurring-rules/preview` | The next dates for a rule being edited | Member |
+| GET | `/recurring-rules/{rule_id}` | One rule | Member |
+| PATCH | `/recurring-rules/{rule_id}` | Change a rule | Owner or adult |
+| DELETE | `/recurring-rules/{rule_id}` | Delete a rule | Owner or adult |
+
+## Categories and sorting
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/categories` | Categories and sub-categories | Member |
+| POST | `/categories` | Add a category | Owner or adult |
+| PATCH | `/categories/{category_id}` | Change a category | Owner or adult |
+| POST | `/categories/{category_id}/merge` | Move everything into another category, then archive this one | Owner or adult |
+| POST | `/categorize/run` | Sort every uncategorised entry: rules first, then AI for unknown payees if it's on | Owner or adult |
+| GET | `/categorize/review` | Payees whose entries still have no category, biggest first, with a suggestion | Member |
+| POST | `/categorize/accept` | Remember a payee's category and sort its waiting entries | Owner or adult |
+| POST | `/categorize/similar` | Give every other entry from the same payee this entry's category | Owner or adult |
+| POST | `/categorize/undo` | Undo a sorting run | Owner or adult |
+| GET | `/categorize/rules` | Sorting rules | Member |
+| DELETE | `/categorize/rules/{rule_id}` | Delete a sorting rule | Owner or adult |
+
+## Loans
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/loans` | Loans | Member |
+| POST | `/loans` | Add a loan | Owner or adult |
+| GET | `/loans/{loan_id}` | One loan | Member |
+| PATCH | `/loans/{loan_id}` | Change a loan | Owner or adult |
+| GET | `/loans/{loan_id}/schedule` | Amortisation schedule | Member |
+| GET | `/loans/{loan_id}/history` | EMIs paid so far and what's left | Member |
+| GET, POST | `/loans/{loan_id}/rate-changes` | List or add interest-rate changes | Member / Owner or adult |
+| DELETE | `/loans/{loan_id}/rate-changes/{change_id}` | Delete a rate change | Owner or adult |
+| GET, POST | `/loans/{loan_id}/prepayments` | List or add prepayments | Member / Owner or adult |
+| DELETE | `/loans/{loan_id}/prepayments/{prepay_id}` | Delete a prepayment | Owner or adult |
+| POST | `/loans/{loan_id}/simulate` | What a prepayment would save | Member |
+| POST | `/loans/{loan_id}/move-to-card` | Make a loan billed on a card an EMI on that card, and stop its bank debits | Owner or adult |
+| POST | `/loans/payoff-plan` | Compare paying only EMIs and minimums with avalanche and snowball | Member |
+
+## Credit cards
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/cards` | Cards | Member |
+| POST | `/cards` | Add a card | Owner or adult |
+| GET | `/cards/{card_id}` | One card | Member |
+| PATCH | `/cards/{card_id}` | Change a card | Owner or adult |
+| GET | `/cards/{card_id}/history` | The last 12 months: spent, paid back, interest and fees, owed at month end | Member |
+| GET, POST | `/cards/{card_id}/statements` | List or add statements | Member / Owner or adult |
+| POST | `/cards/{card_id}/statements/{statement_id}/pay` | Record a bill payment from a bank account | Owner or adult |
+| GET, POST | `/cards/{card_id}/emis` | List or add card EMIs | Member / Owner or adult |
+| DELETE | `/cards/{card_id}/emis/{emi_id}` | Close a card EMI | Owner or adult |
+
+## Insights
+
+All read only, for any member.
+
+| Method | Path | What it does |
+|---|---|---|
+| GET | `/insights/overview` | Everything the Home screen needs in one call |
+| GET | `/insights/safe-to-spend` | Free to spend until payday, with the lines that make it up |
+| GET | `/insights/dues` | Bills, EMIs, card dues and income in the next `days` (1 to 180, default 30) |
+| GET | `/insights/spend` | Where money went over any period, against the period before |
+| GET | `/insights/categories` | Spending per category |
+| GET | `/insights/cashflow` | Income, spending and EMIs per month |
+| GET | `/insights/inout` | One month's money in and out, per account and kind |
+| GET | `/insights/networth` | Assets minus liabilities now and at each past month end |
+| GET | `/insights/debt` | Debt load: what's owed, EMIs against income (FOIR) and card utilisation |
+| GET | `/insights/anomalies` | Unusual spends, possible duplicates and expected items not confirmed |
+| GET | `/insights/notes` | Rule-based observations with their evidence |
+| GET | `/insights/tax` | This financial year's home-loan principal and interest |
+
+## Inbox (statements and bills)
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| POST | `/inbox/upload` | Upload up to 20 files (PDF, photo, screenshot, CSV or Excel, 25 MB each) to be read | Owner or adult |
+| GET | `/inbox` | Uploaded files and their status | Member |
+| GET | `/inbox/summary` | Counts: items to check, files needing a password, added this week | Member |
+| GET | `/inbox/{ext_id}` | One file with the items found in it | Member |
+| POST | `/inbox/{ext_id}/password` | Unlock a password-protected PDF, optionally remembering the password | Owner or adult |
+| POST | `/inbox/{ext_id}/retry` | Read a file again | Owner or adult |
+| POST | `/inbox/{ext_id}/items/{item_id}/approve` | Add one item to the books | Owner or adult |
+| POST | `/inbox/{ext_id}/items/{item_id}/skip` | Skip one item | Owner or adult |
+| POST | `/inbox/{ext_id}/approve-all` | Add every waiting item from a file | Owner or adult |
+| POST | `/inbox/{ext_id}/undo` | Take back everything a file added | Owner or adult |
+| DELETE | `/inbox/{ext_id}` | Forget the file; what it added stays | Owner or adult |
+
+Reading files needs AI on the server and for the household. See [AI on your server](/ai/server-ai/).
+
+## Attachments
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/attachments` | Stored files | Member |
+| POST | `/attachments` | Start a direct upload; returns a signed upload address | Owner or adult |
+| POST | `/attachments/{attachment_id}/complete` | Finish a direct upload once the file has arrived | Owner or adult |
+| POST | `/attachments/upload` | Upload a small file in one multipart request | Owner or adult |
+| GET | `/attachments/{attachment_id}/url` | A download link valid for an hour | Member |
+| PATCH | `/attachments/{attachment_id}` | Change a file's details | Owner or adult |
+| DELETE | `/attachments/{attachment_id}` | Delete a file | Owner or adult |
+
+## Assistant
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/ai/status` | Whether AI is set up, on for the household, and which model | Member |
+| GET | `/ai/suggestions` | The latest monthly suggestions | Member |
+| POST | `/ai/suggestions/refresh` | Make new suggestions (once every 10 minutes) | Owner or adult |
+| POST | `/ai/suggestions/{suggestion_id}/dismiss` | Hide a suggestion | Owner or adult |
+| POST | `/ai/suggestions/{suggestion_id}/feedback` | Mark a suggestion helpful or not | Member |
+| POST | `/ai/ask` | One question, one answer, with checked amounts | Member |
+| GET | `/ai/threads` | Conversations, newest first (`q` searches them) | Member |
+| POST | `/ai/threads` | Start a conversation | Member |
+| GET | `/ai/threads/{thread_id}` | A conversation with its messages | Member |
+| PATCH | `/ai/threads/{thread_id}` | Rename a conversation | Member |
+| DELETE | `/ai/threads/{thread_id}` | Delete a conversation | Member |
+| POST | `/ai/threads/{thread_id}/messages` | Send a message; the reply streams back as server-sent events | Member |
+| POST | `/ai/actions/undo` | Undo a change the assistant made | Owner or adult |
+
+The message stream sends `meta`, `status` (a tool being used), `token` (text as it is written), `block` (an action card or roadmap), `done` (the saved message, with `verified` and `unverified_amounts`) and `error` events. A message can include up to 5 inbox file ids in `attachments`.
+
+## Skills
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/skills` | Built-in and custom playbooks, and whether each is on | Member |
+| GET | `/skills/{name}` | One playbook with its full text | Member |
+| PATCH | `/skills/{name}` | Switch a playbook on or off with `{"enabled": false}` | Owner or adult |
+| POST | `/skills/custom` | Add or replace a custom playbook: `{"body": "<whole SKILL.md>"}` | Owner |
+| DELETE | `/skills/custom/{name}` | Delete a custom playbook | Owner |
+
+See [Skills and playbooks](/ai/skills/) for the format.
+
+## Connections
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/connections` | The MCP address, your API tokens and connected apps | Member |
+| POST | `/connections/tokens` | Make an API token with a `name` and `access` of `read` or `write`. The token is returned once. | Owner or adult |
+| DELETE | `/connections/tokens/{token_id}` | Revoke one of your tokens | Member |
+| DELETE | `/connections/apps/{family_id}` | Disconnect an app that signed in | Member |
+
+Viewers can only make read-only tokens. Each person can have 20 active tokens.
+
+## Sync, backup and export
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| POST | `/sync` | Swap changes with a device that keeps its own copy of the books. See [Sync](/api/sync/). | Member (viewers can only pull) |
+| GET | `/export/transactions.csv` | Every entry in a date range as CSV | Member |
+| POST | `/backup/export` | Download the whole household as one file locked with a passphrase | Owner |
+| POST | `/backup/inspect` | What a backup holds, without the passphrase | Owner |
+| POST | `/backup/import` | Replace the household's data with a backup, after saving a safety copy | Owner |
+| GET | `/backup/last-safety` | The safety copy saved before the last restore | Owner |
+
+## Notifications and live updates
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/notifications` | Your notifications | Member |
+| POST | `/notifications/read-all` | Mark them all read | Member |
+| GET | `/notifications/push` | Whether web push is set up, and its public key | Member |
+| POST | `/notifications/push/subscribe` | Register a web push subscription | Member |
+| POST | `/notifications/push/unsubscribe` | Remove a web push subscription | Member |
+| GET | `/events` | Server-sent events: `changed` with a topic of `data`, `inbox` or `chat` | Member |
+
+## Server
+
+| Method | Path | What it does | Who |
+|---|---|---|---|
+| GET | `/meta` | Server name, version, sign-up rules and whether AI is set up | Public |
+| GET | `/health` (no `/api/v1`) | Database and storage check | Public |
+
+## Outside the API
+
+These are not in the OpenAPI schema.
+
+| Method | Path | What it does |
+|---|---|---|
+| POST | `/mcp` | The MCP endpoint for connected apps |
+| GET | `/.well-known/oauth-protected-resource` | Which sign-in server protects `/mcp` |
+| GET | `/.well-known/oauth-authorization-server` | Sign-in server details (also at `/.well-known/openid-configuration`) |
+| POST | `/oauth/register` | Register a connecting app |
+| GET, POST | `/oauth/authorize` | The sign-in page connected apps open |
+| POST | `/oauth/token` | Exchange a sign-in code, or renew access |
+| POST | `/oauth/revoke` | Revoke a connected app's token |
+| GET | `/privacy`, `/terms`, `/support` | This server's privacy policy, terms and support page |
+
+<Aside type="note">
+Routes act on the signed-in member's household only. An id from another household answers `404`, as if it didn't exist.
+</Aside>

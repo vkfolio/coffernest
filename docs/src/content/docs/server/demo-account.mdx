@@ -1,0 +1,75 @@
+---
+title: Demo account
+description: Let people try Coffernest on your server with a demo account full of sample books that the server keeps fresh by itself.
+sidebar:
+  order: 7
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+Your server can keep a demo account with a year of made-up household books: a salary, bank accounts, loans, credit cards, bills and everyday spending. It's useful for showing Coffernest to someone without sharing your own data. The demo lives in a household of its own and never becomes the server's admin.
+
+## Turn it on
+
+<Steps>
+
+1. In `.env`, set all three of these. The password is your own choice and needs at least 10 characters.
+
+   ```bash
+   SEED_DEMO=true
+   DEMO_EMAIL=demo@example.com
+   DEMO_PASSWORD=choose-a-demo-password
+   ```
+
+2. Recreate the API container.
+
+   ```bash
+   docker compose up -d --force-recreate api
+   ```
+
+3. Wait a few minutes. The first time, the server builds a year of entries through its own API, which takes a while on a small machine. The log says when it's done:
+
+   ```bash
+   docker compose logs api | grep "demo account"
+   ```
+
+   You'll see `demo account: created`.
+
+</Steps>
+
+Then sign in from the app with the demo email and password. If any of the three settings is missing, or the password is shorter than 10 characters, the demo stays off without an error.
+
+## What the server does with it
+
+- It creates the account at start-up if it doesn't exist.
+- If someone deletes the demo account, it's created again on the next check.
+- Once the account is older than `DEMO_REFRESH_DAYS` (30 by default), it's deleted with its household and built again, so "this month" always has entries. Anything a visitor changed is gone after that.
+
+The checks run when the API starts and then every 15 minutes with the background jobs, which are on in the standard setup (`RUN_WORKER=true`).
+
+## It never takes the admin seat
+
+On a fresh server, the first account to sign up becomes the admin. The demo account doesn't count: the server ignores `DEMO_EMAIL` when it decides whether anyone has signed up, so you'll still see **Set up this server** in the app and your own sign-up becomes the admin.
+
+Nobody can sign up with the demo email. Trying gives "This email is kept for the demo".
+
+<Aside type="caution">
+Anyone with the demo password can sign in and see and change the demo books. Don't put real data in it. The demo account is the owner of its own household, so a visitor could add a family member to it. If someone joins the demo household that way, the server stops refreshing it and logs `demo account … has other members; not refreshing it`. Sign in as the demo and remove that member in **Settings › Household** to let it start afresh.
+</Aside>
+
+## Turn it off
+
+Set `SEED_DEMO=false` and recreate the API container. The existing demo account stays until you remove it: sign in as the demo, open **Settings**, tap the name at the top, then tap **Delete account**.
+
+## A one-off demo from the command line
+
+You can also build a demo household once, without the server keeping it:
+
+```bash
+docker compose exec api coffernest seed-demo --email you@example.com --password 'at-least-10-chars'
+```
+
+Without `--email` and `--password` it uses `demo@example.com` and `demo-password-123`. Add `--base-url https://your-server` to fill a different, running server over the network instead; that server must have sign-up open while you do.
+
+<Aside type="caution">
+A demo made this way is an ordinary account. On a server with nobody signed up yet, it takes the first-account seat, and your own sign-up afterwards will be refused unless `ALLOW_REGISTRATION=true`. Use `DEMO_EMAIL` with `SEED_DEMO` instead, or make your own account first.
+</Aside>

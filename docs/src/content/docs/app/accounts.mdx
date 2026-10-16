@@ -1,0 +1,124 @@
+---
+title: Accounts, cards and loans
+description: Add bank, cash, wallet and investment accounts, track credit card statements and card EMIs, and follow each loan's EMI schedule.
+sidebar:
+  order: 4
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import accounts from '~/assets/shots/accounts.png';
+import card from '~/assets/shots/card.png';
+import loan from '~/assets/shots/loan.png';
+
+The **Accounts** tab lists everything you own and owe, with your net worth at the top.
+
+<Shots items={[{ src: accounts, caption: 'Accounts' }, { src: card, caption: 'A credit card' }, { src: loan, caption: 'A loan' }]} />
+
+## The Accounts tab
+
+From the top:
+
+- **Net worth**, and how much it's moved this month. Tap it for the [Net worth](/app/networth/) screen.
+- **Where your money is**, a chart of bank, cash, wallet and investment balances.
+- Your accounts, grouped into **Bank**, **Cash**, **Wallets**, **Investments**, **Credit cards** and **Loans**.
+- **You owe › All debts**, which opens the [Debt](/app/planning/#debt) screen.
+- **Insights**: **Cashflow**, **In and out by account**, **Spending by category**, **Coming up** and **Unusual activity**. Rupee households also see **Tax** here.
+- **Archived** accounts, if you have any.
+
+To add one, tap **+** and choose **Bank, cash or wallet**, **Investment**, **Credit card** or **Loan**.
+
+## Bank, cash and wallet accounts
+
+<Steps>
+1. Tap **+ › Bank, cash or wallet**.
+2. Choose the **Type**, and enter a **Name** and the **Bank**.
+3. For a bank account, you can add the **Last 4 digits**, the **Account type** and the IFSC.
+4. Enter the **Opening balance** and the date it was correct **As of**. Entries after that date adjust the balance.
+5. Tap **Save**.
+</Steps>
+
+Leave **Count in safe to spend** on for accounts you spend from. Turn it off for money you don't want counted in [free to spend](/app/home/#free-to-spend), such as an emergency fund.
+
+Tap an account to see its balance and its latest transactions. To change it, tap **Edit**. **Archive account** hides an account you no longer use from totals while keeping its history.
+
+## Investments
+
+Choose **+ › Investment** for things like mutual funds or shares that you track as one value. Enter the **Platform** and the **Current value**. Update the value whenever you like; net worth uses the latest one. Investments are shown as estimated values, and they don't count towards free to spend.
+
+## Credit cards
+
+<Steps>
+1. Tap **+ › Credit card**.
+2. Enter a **Name**, the **Bank**, the **Network** and the **Last 4 digits**.
+3. Enter the **Credit limit** and what you owe on the card today.
+4. Set the day the statement is made and how many days later it's due.
+5. Choose the bank account you usually pay it from, then tap **Save**.
+</Steps>
+
+Record card spending in [Quick Add](/app/adding/) by choosing the card as the account.
+
+### The card screen
+
+The top shows **Owed on this card** and how much of your limit you're using. Under **This month's bill** you'll see the **Statement** total, **Pay at least** (the minimum due), the **Due date** and anything **Already paid**.
+
+On this iPhone, Coffernest makes each statement on the statement day from what you've recorded on the card. To enter a statement from your bank yourself, tap **+ › Add statement** and fill in the dates, **Total due**, **Minimum due**, **Interest charged** and **Fees**.
+
+Further down are **By month** (spent against paid, with interest and fees for the financial year), past **Statements** and their status, and the card's details.
+
+### Record a payment
+
+<Steps>
+1. On the card, tap **Record payment of** the amount due.
+2. Choose **Full**, **Minimum** or type an **Other amount**.
+3. Choose the account it was paid **From** and the date, then tap **Record**.
+</Steps>
+
+This writes the payment in your books and moves the statement to paid, part paid or minimum paid. Coffernest doesn't pay the card; do that in your bank's app. You can also record a card payment as a [transfer](/app/adding/#move-money-between-your-accounts) to the card.
+
+### Card EMIs
+
+For a purchase converted to EMIs, or a loan taken on the card:
+
+<Steps>
+1. On the card, tap **+ › Add EMI**.
+2. Choose **Purchase on EMI** or **Loan on card**, and say what it was for.
+3. Enter the **Amount**, the yearly interest rate, the number of months, the **First EMI** date and any **Processing fee**.
+4. Tap **Save**.
+</Steps>
+
+Each one appears under **EMIs on this card** with how many are paid and what's left. Swipe left to remove one.
+
+## Loans
+
+<Steps>
+1. Tap **+ › Loan**.
+2. Enter a **Name**, choose the **Type** (Home, Car, Personal, Education, Gold or Other) and enter the **Lender**.
+3. Enter the **Amount borrowed**, the **Interest rate**, whether it's **Floating** or **Fixed**, the tenure and the **First EMI** date.
+4. If your bank's EMI differs from what Coffernest works out, enter it in **EMI (if different)**.
+5. Choose the account the EMI is paid from. Leave **Add EMI to bills** on so each EMI is expected and counted in free to spend.
+6. Tap **Save**.
+</Steps>
+
+### The loan screen
+
+The top shows what's **Still to repay**, how long is left, the EMI and rate, and how much of the loan you've repaid.
+
+**Schedule** charts principal and interest over the life of the loan, with **Interest you'll still pay**, the **Next EMI** and when the loan ends. **Full schedule** lists every EMI with its principal, interest and the balance after it.
+
+### Prepayments
+
+When you pay a lump sum towards the loan, tap **Record prepayment**. Enter the amount and date, choose whether to **Reduce tenure** or **Reduce EMI**, and pick the account it was paid from. The schedule is worked out again from that date.
+
+To see what a prepayment would save before you make it, tap **What if I pay extra?**. See [Debt and planning](/app/planning/#prepayment-simulator).
+
+### Rate changes
+
+For a floating-rate loan, record each change from your lender: tap **Add rate change**, enter the date it applies **From** and the **New rate**. Leave **Keep EMI the same** on if your lender changes the tenure rather than the EMI.
+
+### A loan billed on a card
+
+Some loans are really EMIs on a credit card. Tap **Billed on a credit card? Move it to the card** and choose the card. The loan becomes an EMI on that card with the same EMIs left, its bank debits stop, and the loan closes.
+
+<Aside type="note">
+Loan and card figures are worked out from the details you enter. Check them against your lender's statement if they matter for a decision.
+</Aside>

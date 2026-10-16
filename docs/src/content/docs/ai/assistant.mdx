@@ -1,0 +1,101 @@
+---
+title: Using the assistant
+description: Ask questions about your money, choose who answers, and control what is shared.
+sidebar:
+  order: 1
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import assistant from '~/assets/shots/assistant.png';
+import assistantSettings from '~/assets/shots/assistant-settings.png';
+import aiConsent from '~/assets/shots/ai-consent.png';
+
+The assistant answers questions about your household's money using your own records. It can also add entries for you when you ask, and it always shows what it changed.
+
+<Shots items={[
+  { src: assistant, caption: 'Assistant' },
+  { src: assistantSettings, caption: 'Settings › Assistant' },
+  { src: aiConsent, caption: 'Before anything is shared' },
+]} />
+
+## Open the assistant
+
+Tap **Ask about your money** on Home, or the speech bubble at the top of any main screen. You can also type a question in Search and choose **Ask Assistant**.
+
+The first screen offers a few starting questions, such as what is due before the end of the month. To start again, tap the new chat button at the top. Earlier conversations are in **More (…) › Earlier chats**, and **More (…) › Assistant settings** opens the same settings as below.
+
+## Choose who answers
+
+Go to **Settings › Assistant**. Under **Who answers** you can pick:
+
+| Choice | What it means |
+|---|---|
+| **Automatic** | Your server's assistant when it has one switched on, otherwise Apple Intelligence on this iPhone. |
+| **Your server's assistant** | Runs on your Coffernest server, with the AI model its owner set up. |
+| **Apple Intelligence** | Apple's on-device model. Private, works offline, simpler answers. |
+
+Under **Advanced: your own AI provider** you can use your own API key from this iPhone instead:
+
+| Choice | What you need |
+|---|---|
+| **Claude** | Your Anthropic API key |
+| **OpenAI** | Your OpenAI API key |
+| **Gemini** | Your Google AI key |
+| **Custom endpoint** | The address of any OpenAI-style server, such as Ollama, LM Studio or OpenRouter. A key is optional. |
+
+Keys are kept in this iPhone's Keychain and are only sent to the provider you picked. After saving a key, tap **Test connection** to check it works and see which models are available. You can choose a model from the list or type a model name.
+
+If your books are kept on this iPhone rather than on a server, **Your server's assistant** isn't offered, and **Automatic** means Apple Intelligence.
+
+<Aside type="note">
+Apple Intelligence needs an iPhone that supports it, with Apple Intelligence turned on in the iPhone's Settings. It handles quick questions and adding expenses well. For planning questions, a larger model gives better answers.
+</Aside>
+
+## What it can do
+
+**Answer from your numbers.** The assistant looks up balances, dues, spending, loans and cards through the app rather than guessing. Ask things like "Why is spending up this month?" or "Should we prepay the home loan or invest?". For planning questions it follows a [playbook](/ai/skills/), and it can show a comparison of options as a roadmap.
+
+**Add things you ask for.** Say "Spent 1,200 on Aarav's uniform" or "Add the school fee as quarterly" and it records it. How this works depends on who answers:
+
+- With **Apple Intelligence** or your own provider, it shows a card marked **Needs your confirmation**. Nothing is saved until you tap **Confirm**. Tap **Cancel** to drop it.
+- With **your server's assistant**, it records the entry straight away and shows a card with what it added. Tap **Undo** on that card to take it back.
+
+It only records something when you ask. It ignores instructions written inside documents or payee names. Viewers in a household can ask questions but can't add anything.
+
+## How figures are checked
+
+Below each answer, a badge shows whether its amounts were checked. **Checked against your numbers** means every amount in the answer matched a figure from your records. If some didn't match, the badge reads **Couldn't check** followed by the amounts. Tap the badge to see **What was checked**: the amounts that couldn't be matched and the records the assistant looked at.
+
+An amount that couldn't be checked isn't necessarily wrong. It may be a rounded sum or an estimate the assistant worked out. Treat it with care.
+
+## Before your figures are shared
+
+Apple Intelligence keeps everything on your iPhone, so it never asks. Every other choice asks first. The first time you send a question, a sheet lists what will be sent:
+
+- To answer questions: balances, totals and category spending; the transactions it searches for (payee, amount, date); and your questions.
+- With your server's assistant, also the statement files you upload, and for sorting entries, the payee, amount and date of unsorted entries and your category names.
+
+Your sign-in is never sent. Full account numbers are never sent to answer questions; with your server's assistant they are only sent where a statement you upload shows them. The provider's own privacy terms apply to what it receives.
+
+Tap **Allow** to go ahead, or **Not now** to stop.
+
+### Withdraw consent
+
+<Steps>
+1. Go to **Settings › Assistant**.
+2. Select the provider you allowed. Its settings appear below the list.
+3. Turn off **Share my data with the server's assistant**, or **Share my figures with** followed by the provider's name.
+4. Select who should answer from now on, such as **Apple Intelligence**.
+</Steps>
+
+If that provider is chosen again, the next question asks for consent again. To remove a saved key, select that provider and tap **Remove** next to the key.
+
+## If the assistant isn't available
+
+- **Assistant isn't set up.** Your server doesn't have AI turned on. Ask whoever runs it, or see [AI on your server](/ai/server-ai/).
+- **Off for this household.** The household owner can tap **Turn on** in the assistant, or turn on **Allow for this household** in **Settings › Assistant**. Other members see "Ask the household owner to turn the assistant on."
+- **Add your API key in Settings.** You chose your own provider but haven't saved a key yet.
+
+## Not financial advice
+
+The assistant works things out from your own records. It explains and compares, and you decide. It is not a licensed financial adviser. For investments, insurance products or filing tax, confirm with a professional.

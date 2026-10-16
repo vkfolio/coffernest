@@ -1,0 +1,112 @@
+---
+title: Privacy and security
+description: Lock Coffernest with Face ID, hide amounts, see what leaves your iPhone, export your data and delete it.
+sidebar:
+  order: 11
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import privacyLock from '~/assets/shots/privacy-lock.png';
+import exportShot from '~/assets/shots/export.png';
+
+Coffernest records what you enter. It never connects to your bank, never asks for bank passwords or reads your messages, and never moves money. This page covers how to keep the app private on your phone, where your data goes, and how to take it with you or delete it.
+
+## Lock with Face ID
+
+Coffernest asks for Face ID when you open it. If Face ID isn't set up or doesn't recognise you, you can use your iPhone passcode instead.
+
+To change this, go to **Settings › Appearance and security**:
+
+- **Lock with Face ID** turns the lock on or off. It's on when you first install the app.
+- **Lock after** sets how long Coffernest can be in the background before it asks again: **Immediately**, **1 minute**, **5 minutes** or **15 minutes**. The default is 1 minute.
+
+Pulling down Control Centre or answering a notification doesn't count as leaving the app, so it won't lock you out mid-entry.
+
+When you switch apps, Coffernest covers its screen with its logo, so your balances don't show in the app switcher.
+
+Coffernest also asks for Face ID again before it shows a full bank account number.
+
+<Shots items={[{ src: privacyLock, caption: 'Appearance and security' }]} />
+
+## Hide amounts
+
+If you're showing someone your phone, or using it on a train, you can hide every amount in the app. Hidden amounts show as dots until you turn this off.
+
+- Go to **Settings › Appearance and security** and turn on **Hide amounts**.
+- Or, on Home, touch and hold the **Free to spend** figure and tap **Hide amounts**.
+
+### On the Lock Screen
+
+**Hide amounts on Lock Screen** is on by default. With it on, the Coffernest Lock Screen widget shows dots instead of your safe-to-spend figure. Turn it off in **Settings › Appearance and security** if you'd rather see the number. See [Widgets, Siri and Shortcuts](/app/shortcuts/).
+
+## Signing in on a server
+
+If you use a Coffernest server, **Settings › Appearance and security** also has:
+
+- **Signed-in devices**: every phone and browser signed in to your account, with when each was last used. Swipe left on one and tap **Sign out**, or tap **Sign out all other devices**.
+- **Change password**.
+- **Two-factor authentication**: after you set it up, signing in on a new device also asks for a 6-digit code from an authenticator app. Save the recovery codes it gives you; each one works once if you lose your authenticator.
+
+## What Coffernest collects
+
+Coffernest has no ads, no analytics and no tracking, and doesn't include any third-party code that could collect them. Where your data lives depends on how you use the app.
+
+| How you use it | Where your data goes |
+|---|---|
+| **Use on this iPhone** | Nowhere. Everything is stored on the phone, protected by iOS data protection, and included in your encrypted iPhone backups. |
+| **Connect to a server** | To the Coffernest server you signed in to, which you or your family run. The iPhone keeps a copy for quick, offline viewing, also protected by iOS data protection. |
+| **On this iPhone, synced with a server** | Kept on the phone, with a copy on your server. See [Sync with a server](/app/sync/). |
+| **Sample data** | Nowhere. Nothing you change is kept. |
+
+A few more details:
+
+- Bill reminders are scheduled on your iPhone, not sent from a server.
+- When Coffernest signs in to a server, it names your device "Coffernest iOS", not your iPhone's own name.
+- Buying the unlock is handled by Apple. Coffernest doesn't send anything about it to a server.
+
+### The assistant
+
+You never have to use the assistant. If you do, what it sees depends on where it runs:
+
+- **Apple Intelligence** runs on your iPhone. Nothing leaves the phone.
+- **Your server's assistant** sends figures to the AI provider your server's owner chose.
+- **Your own API key** sends figures straight from your iPhone to the provider you picked.
+
+Before anything goes to an AI provider, Coffernest shows what it will receive and asks you to allow it. Your sign-in is never sent. You can change this at any time in **Settings › Assistant**. See [AI on your server](/ai/server-ai/).
+
+## Export your data
+
+You can export your entries as a CSV file at any time, even after a free trial ends.
+
+<Steps>
+1. Go to **Settings › Export CSV**. You can also find **Export** in the **More** menu (the three dots) on the **Activity** tab.
+2. Set **From** and **To**. The dates start at the last 90 days.
+3. Tap **Export CSV**, then **Share or save** to save it to Files, send it, or open it in Numbers or Excel.
+</Steps>
+
+The file has one row for each entry, with its date, account, payee, category, amount and note.
+
+<Shots items={[{ src: exportShot, caption: 'Export CSV' }]} />
+
+### Encrypted backups on a server
+
+On a server, the household's admin can also make a full backup in **Settings › Backup**. It holds everything in the household, encrypted with a passphrase of at least 8 characters, and can include your documents. Keep the passphrase safe: you need it to restore. Restoring replaces everything in the household.
+
+## Erase or delete your data
+
+<Aside type="caution">
+Deleting can't be undone. Export a CSV, or make a backup on a server, first if you might want your records later.
+</Aside>
+
+### On this iPhone
+
+Go to **Settings** and tap **Erase all data on this iPhone**, then **Erase all data**. Every account, entry, bill, loan and card you added is deleted, and Coffernest goes back to its first screen. If your books sync with a server, syncing stops first; the server's copy isn't touched.
+
+### On a server
+
+- **Delete your account**: go to **Settings**, tap your name, then **Delete account**. Enter your password to confirm. Your sign-in is deleted. If no one else is in your household, the household and everything in it goes too.
+- **Delete the whole household**: the admin can go to **Settings › Household** and tap **Delete household**. Every entry, account, bill, loan, card, file and member is deleted. Members who aren't in another household lose their sign-in too.
+
+If you're the admin and other people still use your household, you can't delete just your own account. Remove the other members first, or delete the household. See [Family members](/family/members/).
+
+To leave a server without deleting anything, tap **Sign out** at the bottom of **Settings**. Entries still waiting to be sent are removed from this iPhone.

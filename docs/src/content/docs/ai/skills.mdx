@@ -1,0 +1,145 @@
+---
+title: Skills and playbooks
+description: The planning playbooks the assistant follows, and how to add, change or switch them off.
+sidebar:
+  order: 3
+---
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import playbooks from '~/assets/shots/playbooks.png';
+
+Skills are short written playbooks the assistant loads when a question calls for one, such as "should we prepay the home loan" or "old or new tax regime". Each one sets a goal, the steps to follow and which tools to use for the numbers. The app calls them **Playbooks**.
+
+The assistant only sees each skill's name and description up front. When a question matches, it loads the full playbook and follows it, and the answer records which playbooks it used.
+
+## Built-in skills
+
+| Skill | Title | Use it for |
+|---|---|---|
+| `budget-and-spending-review` | Where the money went | Where money went this month, overspending and setting budgets |
+| `capital-gains-and-investment-tax` | Tax on investments and capital gains | How a sale or investment is taxed, holding periods and tax harvesting |
+| `cashflow-and-dues-planner` | Cash flow and upcoming dues | What's due before payday and whether the balance covers it |
+| `credit-card-health` | Credit card health | Card bills, minimum due, utilisation and card EMIs |
+| `debt-payoff-strategy` | Which debt to clear first | The order to repay several loans and cards (avalanche or snowball) |
+| `emergency-fund-and-liquidity` | Emergency fund and liquidity | How big a safety buffer should be and where to keep it |
+| `financial-health-checkup` | Household financial health check | An overall scorecard and what to worry about first |
+| `financial-roadmap` | Full financial roadmap | Comparing paths for spare money, in three phases. Hands off to the narrower skills. |
+| `goal-planning-sip` | Planning a goal with a SIP | The monthly SIP needed for a goal, flat or with a step-up |
+| `home-loan-prepayment` | Should we prepay the home loan | Prepaying, reducing EMI or tenure, or investing instead |
+| `income-tax-planner-india` | Income tax planning | Old or new regime, deductions and deadlines for the tax year |
+| `insurance-adequacy-india` | Is our insurance enough | Term life and health cover, and gaps in employer cover |
+| `loan-affordability-and-cibil` | Can we afford a new loan | Whether a new EMI fits, approval chances and credit score |
+| `school-fees-and-education` | School fees and education planning | Lumpy school costs this year and a long-term education fund |
+
+There is also `india-facts` (India money facts for 2026-27): a reference sheet of tax slabs, rates and rules, each with a source and a confidence level. It is always available and can't be switched off. Skills that quote rates or limits point to it.
+
+## Switch a skill off or on
+
+<Steps>
+1. Go to **Settings › Assistant › Playbooks**.
+2. Swipe left on a playbook and tap **Turn off**. It is dimmed in the list.
+3. To bring it back, swipe again and tap **Turn on**.
+</Steps>
+
+This applies to your household only. Owners and adults can do it; viewers can't. Tap a playbook to read the whole thing.
+
+<Shots items={[{ src: playbooks, caption: 'Settings › Assistant › Playbooks' }]} />
+
+## Add your own
+
+The household owner can add playbooks from the app. They are saved on the server for that household and work straight away, with no restart.
+
+<Steps>
+1. Go to **Settings › Assistant › Playbooks**.
+2. Tap **New playbook**. A short template appears.
+3. Replace it with your own `SKILL.md` text (see the format below) and tap **Save**.
+</Steps>
+
+Your playbook shows **Custom** next to its title. To change it, add it again with the same `name`: the new text replaces the old. To remove it, swipe left and tap **Delete**. Only the owner can add or delete custom playbooks.
+
+A custom playbook can't use the name of a built-in one. The same actions are available in the API as `POST /api/v1/skills/custom`, `PATCH /api/v1/skills/{name}` and `DELETE /api/v1/skills/custom/{name}` (see [Endpoints](/api/endpoints/#skills)).
+
+## The SKILL.md format
+
+A skill is a Markdown file that starts with a front matter block between `---` lines, followed by the instructions.
+
+```md title="SKILL.md"
+---
+name: rent-or-buy
+title: Rent or buy a home
+description: Use when the user asks whether to keep renting or buy, e.g. "should we buy a flat", "rent vs EMI", "can we afford a down payment".
+tools: [get_overview, get_cashflow, list_accounts, compare_paths]
+as_of: 2026-10-16
+---
+# Rent or buy a home
+
+## Goal
+
+Compare renting with buying using the household's own income, savings and EMIs, and say which fits better today.
+
+## Steps
+
+1. Call get_overview and get_cashflow for income, spending and current EMIs.
+2. Call list_accounts to see savings that could go towards a down payment.
+3. Ask for the property price and expected rent if the user hasn't given them.
+4. Use compare_paths for the long-run cost. Never work out the numbers yourself.
+5. Finish with the cheaper option, why, and the first step to take this month.
+```
+
+The loader reads these front matter fields:
+
+| Field | Required | What it does |
+|---|---|---|
+| `name` | Yes | The skill's id. Lowercase letters, digits and dashes, 2 to 79 characters, starting with a letter or digit. |
+| `description` | Yes | When to use it, at least 10 characters (up to 600 are kept). This is what the assistant reads to decide whether to load the skill, so include the kinds of questions it covers. |
+| `title` | No | The name shown in the app. Defaults to the `name` with dashes turned into spaces. |
+| `tools` | No | The tools the playbook uses, as `[a, b]` or `a, b`. Shown in the app as **Uses:**. It is a hint and doesn't limit what the assistant can call. |
+| `as_of` | No | The date the playbook was last checked, passed to the assistant with the body. |
+
+Each field sits on one line as `key: value`; values can't run over several lines. Quotes around a value are removed, and other keys are ignored. The instructions below the block must be at least 20 characters, and up to 40,000 are kept.
+
+Tool names you can refer to include `get_overview`, `get_dues`, `get_cashflow`, `get_category_spend`, `get_spend`, `list_accounts`, `get_anomalies`, `get_tax_summary`, `simulate_prepayment`, `plan_payoff`, `compare_paths`, `project_goal` and, in the assistant, `present_roadmap` to show a comparison as a roadmap.
+
+## Built-in skills on a self-hosted server
+
+Built-in skills are folders inside the server's code, at `api/coffernest/skills/<name>/SKILL.md`. In the Docker image that is `/app/coffernest/skills`. The server reads every `*/SKILL.md` there once, the first time it needs them, so **restart the server after any change**. Built-in skills apply to every household on the server, and each household can still switch them off.
+
+A built-in skill can also have a `references/` folder of extra `.md` files the assistant can load by name when the playbook points to them. Files in `skills/_shared/` are always-on reference sheets like `india-facts`.
+
+<Tabs>
+<TabItem label="Build from source">
+
+<Steps>
+1. Add, edit or delete a folder under `api/coffernest/skills/`.
+2. Rebuild and restart:
+
+   ```sh
+   docker compose up -d --build
+   ```
+</Steps>
+
+</TabItem>
+<TabItem label="Ready-made image">
+
+Mount your skill folder into the image's skills folder in `docker-compose.yml`:
+
+```yaml
+  api:
+    volumes:
+      - ./my-skills/rent-or-buy:/app/coffernest/skills/rent-or-buy:ro
+```
+
+To replace a built-in playbook, mount your own file over its `SKILL.md`. Then run `docker compose up -d`.
+
+</TabItem>
+</Tabs>
+
+<Aside type="caution">
+A built-in `SKILL.md` that doesn't parse (no `name`, too short a description, no instructions) stops the server from starting when connectors are on, because skills are loaded at start-up for them. Check the logs after a change. Custom playbooks added from the app are checked when you save them instead.
+</Aside>
+
+To take a built-in skill away for everyone, delete its folder and rebuild. For a single household, switching it off in the app is enough.
+
+## Skills in connected apps
+
+When you [connect Claude or another MCP client](/ai/connectors/), it can list and load the same playbooks with the `list_skills` and `get_skill` tools, including your custom ones and minus any you switched off. Built-in skills are also offered as MCP prompts, which some clients show as ready-made commands.

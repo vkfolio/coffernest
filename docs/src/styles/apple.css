@@ -1,0 +1,149 @@
+/* Coffernest docs: quiet, Apple-like. System fonts, generous space, the app's indigo. */
+
+:root {
+  --sl-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Roboto, sans-serif;
+  --sl-font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --sl-content-width: 46rem;
+  --sl-text-h1: 2.75rem;
+  --sl-text-h2: 1.75rem;
+  --sl-text-h3: 1.3rem;
+  --sl-line-height: 1.6;
+  --cn-radius: 18px;
+
+  /* Dark (Starlight's default) */
+  --sl-color-accent-low: #1e1d4d;
+  --sl-color-accent: #8c8aff;
+  --sl-color-accent-high: #d6d5ff;
+  --sl-color-white: #f5f5f7;
+  --sl-color-gray-1: #e8e8ed;
+  --sl-color-gray-2: #c7c7cc;
+  --sl-color-gray-3: #98989d;
+  --sl-color-gray-4: #636366;
+  --sl-color-gray-5: #3a3a3c;
+  --sl-color-gray-6: #1c1c1e;
+  --sl-color-black: #000000;
+  --cn-card: #1c1c1e;
+  --cn-hairline: rgba(255, 255, 255, 0.1);
+  --cn-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #ecebfd;
+  --sl-color-accent: #2b29c9;
+  --sl-color-accent-high: #1a1880;
+  --sl-color-white: #1d1d1f;
+  --sl-color-gray-1: #1d1d1f;
+  --sl-color-gray-2: #424245;
+  --sl-color-gray-3: #6e6e73;
+  --sl-color-gray-4: #86868b;
+  --sl-color-gray-5: #d2d2d7;
+  --sl-color-gray-6: #f5f5f7;
+  --sl-color-gray-7: #fbfbfd;
+  --sl-color-black: #ffffff;
+  --cn-card: #ffffff;
+  --cn-hairline: rgba(0, 0, 0, 0.08);
+  --cn-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+
+/* Header: translucent bar like apple.com */
+header.header {
+  background: color-mix(in srgb, var(--sl-color-black) 78%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--cn-hairline);
+}
+.site-title { font-weight: 600; letter-spacing: -0.02em; }
+.site-title img { border-radius: 22%; }
+
+/* Sidebar */
+nav.sidebar .large { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--sl-color-gray-3); font-weight: 600; }
+nav.sidebar a { border-radius: 8px; }
+nav.sidebar a[aria-current='page'],
+nav.sidebar a[aria-current='page']:hover {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+  font-weight: 600;
+}
+
+/* Headings */
+h1, .sl-markdown-content :is(h2, h3, h4) { letter-spacing: -0.025em; font-weight: 700; }
+h1#_top { font-size: clamp(2rem, 5vw, var(--sl-text-h1)); line-height: 1.08; }
+.sl-markdown-content h2 { margin-top: 2.6rem; padding-top: 0.2rem; }
+.sl-markdown-content :is(p, li) { color: var(--sl-color-gray-2); }
+:root[data-theme='light'] .sl-markdown-content :is(p, li) { color: #333336; }
+.sl-markdown-content strong { color: var(--sl-color-white); }
+
+/* Cards and asides: rounded, soft */
+.card, .sl-link-card {
+  border-radius: var(--cn-radius) !important;
+  border: 1px solid var(--cn-hairline) !important;
+  background: var(--cn-card) !important;
+  box-shadow: var(--cn-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.sl-link-card:hover { transform: translateY(-2px); }
+.card .title { letter-spacing: -0.02em; }
+.starlight-aside { border-radius: 14px; border-inline-start-width: 0; border: 1px solid var(--cn-hairline); }
+.expressive-code .frame { border-radius: 14px !important; overflow: hidden; }
+.sl-markdown-content table { border-radius: 12px; overflow: hidden; font-size: 0.92rem; }
+.sl-markdown-content :not(pre) > code { border-radius: 6px; padding: 0.1em 0.35em; }
+.sl-steps > li::before { background: var(--sl-color-accent) !important; color: var(--sl-color-black) !important; border: none !important; font-weight: 600; }
+
+/* Phone screenshots */
+.cn-shots {
+  display: flex;
+  gap: 1.75rem;
+  justify-content: center;
+  margin: 2rem 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 0.5rem 0.25rem 1rem;
+}
+.cn-shots figure { margin: 0; flex: 0 0 auto; width: min(240px, 62vw); scroll-snap-align: center; text-align: center; }
+.cn-shots img {
+  width: 100%;
+  height: auto;
+  border-radius: 34px;
+  border: 1px solid var(--cn-hairline);
+  box-shadow: var(--cn-shadow);
+  background: #fff;
+}
+.cn-shots figcaption { margin-top: 0.75rem; font-size: 0.85rem; color: var(--sl-color-gray-3); }
+
+/* Landing page */
+.cn-hero { text-align: center; padding: 3rem 0 1rem; }
+.cn-hero img.cn-icon { width: 96px; height: 96px; border-radius: 22%; box-shadow: var(--cn-shadow); }
+.cn-hero h1 { font-size: clamp(2rem, 8vw, 4rem); overflow-wrap: anywhere; line-height: 1.05; letter-spacing: -0.035em; margin: 1.5rem 0 0.75rem; color: var(--sl-color-white); }
+.cn-hero p.cn-lede { font-size: clamp(1.1rem, 2.4vw, 1.35rem); color: var(--sl-color-gray-3); max-width: 36rem; margin: 0 auto; line-height: 1.45; }
+.cn-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
+.cn-btn {
+  display: inline-block; padding: 0.7rem 1.4rem; border-radius: 999px; font-weight: 600; text-decoration: none;
+  background: var(--sl-color-accent); color: var(--sl-color-black);
+}
+:root[data-theme='light'] .cn-btn { color: #fff; }
+.cn-btn.cn-secondary { background: var(--sl-color-accent-low); color: var(--sl-color-accent-high); }
+.cn-hero-shots { display: flex; justify-content: center; align-items: flex-end; gap: 1.5rem; margin: 3.5rem auto 1rem; overflow: hidden; }
+.cn-hero-shots img { width: min(250px, 40vw); height: auto; border-radius: 36px; border: 1px solid var(--cn-hairline); box-shadow: var(--cn-shadow); }
+.cn-hero-shots img.cn-side { width: min(210px, 30vw); opacity: 0.95; }
+@media (max-width: 40rem) { .cn-hero-shots img.cn-side { display: none; } }
+.cn-section-title { text-align: center; font-size: clamp(1.6rem, 4vw, 2.2rem); letter-spacing: -0.03em; margin: 4rem 0 0.5rem; color: var(--sl-color-white); font-weight: 700; }
+.cn-section-sub { text-align: center; color: var(--sl-color-gray-3); margin: 0 auto 2rem; max-width: 34rem; }
+
+/* Splash page: the hero replaces the title bar */
+.content-panel:has(h1#_top):has(+ .content-panel .cn-hero) { display: none; }
+.content-panel:has(.cn-hero) { border-top: none; }
+.cn-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+@media (max-width: 50rem) { .cn-grid3 { grid-template-columns: 1fr; } }
+.cn-grid3 .card { margin: 0 !important; }
+
+/* Softer asides in light mode */
+:root[data-theme='light'] .starlight-aside--note { background: #f2f2fd; border-color: #dcdbf7; }
+:root[data-theme='light'] .starlight-aside--tip { background: #effaf3; border-color: #cdebd8; }
+:root[data-theme='light'] .starlight-aside--caution { background: #fff8eb; border-color: #f3e2bd; }
+:root[data-theme='light'] .starlight-aside--danger { background: #fdf1f0; border-color: #f4d3cf; }

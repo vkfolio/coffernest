@@ -1,0 +1,86 @@
+---
+title: Bills and dues
+description: Set up repeating bills and income, see what's coming up, mark payments as paid and get reminders before they're due.
+sidebar:
+  order: 3
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import bills from '~/assets/shots/bills.png';
+import dues from '~/assets/shots/dues.png';
+import notifications from '~/assets/shots/notifications.png';
+
+Add your salary and regular bills once, and Coffernest expects them every time they're due. They count towards [free to spend](/app/home/#free-to-spend), appear in Coming up, and can remind you before the day.
+
+<Shots items={[{ src: dues, caption: 'Coming up' }]} />
+
+## Add a repeating bill or income
+
+<Steps>
+1. Go to **Settings › Bills and income**. You can also get there from **Activity**: tap **···** at the top right, then **Bills and income**.
+2. Tap **+**.
+3. Enter a **Name** and **Amount**. Turn on **Amount varies** for bills that change a little each time, like electricity.
+4. Choose **Bill** or **Income**, a **Category** and the **Account** it's paid from or into.
+5. Choose how often it **Repeats**: **Weekly**, **Monthly**, **Quarterly** or **Yearly**, and when it **Starts**. Turn on **Ends** if it stops on a known date.
+6. Set how many days before to remind you, or **No reminder**.
+7. Tap **Save**. The footer shows the next three dates so you can check them first.
+</Steps>
+
+There are two shortcuts:
+
+- In [Quick Add](/app/adding/), tap **···** and set **Repeat** before you save. The entry you're adding becomes the first one.
+- When you add a loan, leave **Add EMI to bills** on. The EMI is added as a repeating payment from the account you chose.
+
+## The Bills and income screen
+
+The top of the screen is this month's calendar, with a dot on each day something is due to go out or come in. Tap a day to see what falls on it.
+
+Below the calendar, your repeating entries are grouped into **Income**, **Due in the next 7 days**, **Later this month** and **Later**. The footer gives roughly what bills and EMIs come to each month, with quarterly and yearly ones spread out.
+
+Tap an entry to change it. Swipe left on one to **Pause** it (it moves to **Paused** until you tap **Resume**) or **Delete** it.
+
+<Shots items={[{ src: bills, caption: 'Bills and income' }]} />
+
+## Expected entries
+
+Each repeating bill or income creates expected entries for the weeks ahead. They show up:
+
+- in **Coming up** on Home, for the next seven days
+- in the **Coming up** screen, for the next 60 days, under **Overdue**, **This week**, **Later this month** and **Next month**
+- at the top of **Activity**, soonest first
+
+Credit card statements that aren't fully paid appear in Coming up too, on their due date. Tap one to open the card.
+
+## When a bill is paid
+
+You don't have to do anything for an EMI paid by auto-debit: it's recorded as paid on its day.
+
+For other bills, there are three ways to mark one as paid:
+
+- **Add it as you normally would.** When you add an expense or income in Quick Add from the same account, within three days of the expected date and within about 5% of the amount, Coffernest marks the expected entry as paid instead of adding another. You'll see "Matched to an expected entry."
+- **Swipe it.** In the Coming up screen, swipe left and tap **Mark paid**. In Activity, swipe right and tap **Confirm**.
+- **Open it** and tap **Confirm**.
+
+If a bill won't happen this time, swipe left on it in Activity and tap **Skip**, or open it and tap **Skip this time**. Only that one is removed; the bill carries on next time. A message offers **Undo** if you skip the wrong one.
+
+A bill that's past its date and not confirmed shows as overdue. It stays in free to spend, because it still has to be paid.
+
+## Reminders
+
+Coffernest can remind you about payments that are due.
+
+<Shots items={[{ src: notifications, caption: 'Notifications' }]} />
+
+<Steps>
+1. Go to **Settings › Notifications**.
+2. Turn on **Remind me about dues**, and allow notifications when iOS asks.
+3. Choose **Days before**: **1 day**, **2 days**, **3 days** or **7 days**.
+</Steps>
+
+Reminders arrive at 9 am on the due day, and on the day you chose before it. They're scheduled on this iPhone from your next 30 days of dues, so they refresh each time you open the app. If it's been a while, open Coffernest once so new bills are included.
+
+To keep amounts off the Lock Screen, turn on **Hide amounts on Lock Screen** in **Settings › Appearance and security**. The reminder then shows only the account name.
+
+<Aside type="note">
+On a server, the server also adds due reminders to the bell on Home, for everyone in the household. These use the number of days before that you set on each bill. If notifications are off for Coffernest in iOS Settings, the Notifications screen tells you.
+</Aside>

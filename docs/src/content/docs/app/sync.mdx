@@ -1,0 +1,106 @@
+---
+title: Sync with a server
+description: Keep your books on this iPhone and a copy on your own Coffernest server, so your other devices and your family see the same entries.
+sidebar:
+  order: 13
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import sync from '~/assets/shots/sync.png';
+
+If you started with **Use on this iPhone**, you can later sync your books with a Coffernest server. Your books stay on the iPhone, and a copy goes to the server, so anyone who signs in there sees the same entries. Changes travel both ways.
+
+<Aside type="note">
+This page is for books kept on this iPhone. If you chose **Connect to a server** on the first screen, your books already live on the server and there's nothing to set up. See [Privacy and security](/app/privacy/) for how the two differ.
+</Aside>
+
+## Before you start
+
+You need:
+
+- The address of a Coffernest server, such as `https://money.example.com`. You can [run your own](/server/install/), or use one a family member runs.
+- An account on that server. If it's a new server, the first person to sign up becomes its admin. If someone else runs it, ask them to add your email first. See [Family members](/family/members/).
+- The free trial or the unlock. Syncing changes your books, so it needs the same unlock as adding entries.
+
+## Turn on sync
+
+<Steps>
+1. Go to **Settings › Sync with a server**.
+2. Under **Your Coffernest server**, enter the **Server address**, your **Email** and your **Password**.
+3. Tap **Connect and sync**.
+4. If your account uses two-factor authentication, a **6-digit code** field appears. Enter the code from your authenticator app and tap **Connect and sync** again.
+</Steps>
+
+Coffernest signs in and runs the first sync straight away.
+
+<Shots items={[{ src: sync, caption: 'Sync with a server' }]} />
+
+### What the first sync does
+
+The first sync takes the server's books first, then sends yours.
+
+- If your account on the server is new and empty, everything from your iPhone goes up to it.
+- If the household on the server already has entries, the two sets are combined. The server's household keeps its name and its own Cash account.
+- Things that are clearly the same aren't doubled up. Coffernest matches the starter categories, people with the same name, and the same occurrence of a repeating bill, and keeps one copy of each.
+
+A large set of books is sent in parts, so the first sync can take a little longer.
+
+## Sync your changes
+
+Coffernest syncs when you ask it to. There are two ways:
+
+- On **Home**, tap the sync button (two curved arrows) at the top. It spins while a sync runs.
+- Go to **Settings › Sync with a server** and tap **Sync now**.
+
+Each sync sends what changed on this iPhone since the last time, then brings back what changed on the server. **Settings › Sync with a server** shows the server, the account you're **Signed in as**, and when you **Last synced**. Under **Last sync** you can see how many changes were **Sent**, **Received** and, if any were deleted on the server, **Removed**.
+
+### When the same entry changed in two places
+
+If an entry was edited on this iPhone and on the server between syncs, the newer edit is kept, and the older one is replaced. This is decided entry by entry, so changes to different entries never get in each other's way.
+
+For example, if you change a grocery entry's amount on your iPhone in the morning, and your partner changes its category on the server in the afternoon, the afternoon edit wins when you next sync and your amount change is lost. Sync before you make a lot of changes if someone else may be editing the same entries.
+
+### If something couldn't be sent
+
+Sometimes the server turns down a change. When that happens, the reason is listed under **Last sync**. They stay on this iPhone and are tried again next time.
+
+## What syncs and what doesn't
+
+Your accounts, entries, categories, people, bills and income, loans and cards all sync.
+
+These stay on the server and don't come back to the iPhone:
+
+- Statements, receipts and other files. See [Statements and receipts](/app/statements/).
+- Family members and their roles.
+- Full bank account numbers.
+
+Household settings, such as the name, currency and financial year, only sync from the iPhone if your account is the household's admin on the server. Someone with view-only access on the server can receive changes but can't send any.
+
+## Stop syncing
+
+<Steps>
+1. Go to **Settings › Sync with a server**.
+2. Tap **Stop syncing**, then **Stop syncing** again to confirm.
+</Steps>
+
+Nothing is deleted on this iPhone or on the server. Coffernest signs out of the server, and your books carry on as before on the iPhone. If you connect again later, everything is sent once more, and anything that's already there is matched rather than doubled.
+
+## Move your books to a server
+
+If you'd rather your books lived on the server, with each family member signing in there:
+
+<Steps>
+1. Turn on sync and sync once, as above, so the server has everything.
+2. Go to **Settings** and tap **Connect a server instead**.
+3. Choose **Connect to a server**, enter the same server address and sign in with the same account.
+</Steps>
+
+Your on-iPhone books aren't deleted when you switch. To come back to them, sign out and choose **Use on this iPhone** on the first screen.
+
+Once you use **Connect to a server**, you can also add family members, upload statements and make encrypted backups.
+
+## If something goes wrong
+
+- **"This server doesn't support Sync yet."** The server is running an older version of Coffernest. Ask whoever runs it to update to the latest server.
+- **"Signed out of the server. Disconnect and connect again."** Your sign-in on the server ended, for example because your password changed or you signed out of all devices. Tap **Stop syncing**, then connect again.
+- **Your free trial has ended.** Syncing needs the unlock. Your books stay visible and you can still export them.

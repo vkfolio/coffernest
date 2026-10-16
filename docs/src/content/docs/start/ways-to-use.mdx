@@ -1,0 +1,72 @@
+---
+title: Three ways to use it
+description: Choose sample data, books kept only on this iPhone, or a Coffernest server, and how to move to a server later.
+sidebar:
+  order: 2
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import welcome from '~/assets/shots/welcome.png';
+import sync from '~/assets/shots/sync.png';
+
+The first time you open Coffernest, it asks where your books should live. You can change your mind later.
+
+<Shots items={[{ src: welcome, caption: 'The first screen' }]} />
+
+## Use on this iPhone
+
+Everything stays on this phone. There's no account to create and no server to set up.
+
+Tap **Use on this iPhone** and you start with an empty set of books and a Cash wallet. Coffernest then offers the free trial, which you need before you can add entries. See [Pricing](/start/pricing/).
+
+This is the simplest way to start if you're the only person adding entries. Your books aren't backed up anywhere else, so export a CSV from **Settings › Export CSV** now and then if you'd like a copy.
+
+## Connect to a server
+
+A Coffernest server keeps one set of books for the whole family. Each person signs in on their own iPhone with their own email and password, and sees the same entries. A server also adds a few things that need somewhere to keep files, such as receipt photos on entries, statement PDFs and encrypted backups.
+
+You need the address of a server that you or someone in your family runs. To set one up, see [Install the server](/server/install/).
+
+<Steps>
+1. On the first screen, tap **Connect to a server**.
+2. Type the server's address, for example `money.example.com`, and tap **Check connection**.
+3. When it says it's connected, tap **Save**.
+4. Sign in with your email and password. If you don't have an account yet, tap **Sign up**.
+</Steps>
+
+If nobody has used the server yet, the button says **Set up this server** instead of **Sign up**. The first account on a server becomes its admin. The admin then adds family members by email, and each of them signs up with that email to join the household. See [Family](/family/members/).
+
+<Aside type="tip">
+To change the server address before you sign in, tap the **Server** row on the sign-in screen. **Other options** takes you back to the first screen.
+</Aside>
+
+## Look around with sample data
+
+**Look around with sample data** opens the full app on a made-up household, so you can try every screen first. Nothing you change is kept, and it's always free.
+
+When you're done, go to **Settings › Leave sample data** to get back to the first screen.
+
+## Move your iPhone books to a server later
+
+If you started on this iPhone and later set up a server, you can keep your books on the phone and sync them with the server both ways. Your entries go up to the server, the family's entries come down, and everyone sees the same books.
+
+<Shots items={[{ src: sync, caption: 'Sync with a server' }]} />
+
+<Steps>
+1. Make sure you have an account on the server. If it's a new server, sign up on it first so you're its admin.
+2. On Home, tap the round button at the top left to open **Settings**.
+3. Tap **Sync with a server**.
+4. Enter the **Server address**, your **Email** and **Password**, then tap **Connect and sync**. If two-step sign-in is on for your account, enter the 6-digit code too.
+</Steps>
+
+After that, sync whenever you like with **Sync now** in the same screen, or with the sync button that appears at the top of Home. If the same entry changed in both places, the newer change is kept. Syncing needs the trial or the unlock.
+
+To stop, tap **Stop syncing**. Nothing is deleted on the phone or the server, and connecting again later sends everything once more. There's more detail in [Sync](/app/sync/).
+
+<Aside type="caution">
+**Settings › Connect a server instead** is different: it switches this iPhone to a server without bringing your entries along. Your on-iPhone books stay on the phone, and you can come back to them from the first screen by choosing **Use on this iPhone** again.
+</Aside>
+
+## Remove your books from this iPhone
+
+To delete everything you added on this phone, go to **Settings › Erase all data on this iPhone**. Every account, entry, bill, loan and card is deleted, and this can't be undone. Export a CSV first if you might want it.

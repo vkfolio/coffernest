@@ -1,0 +1,218 @@
+---
+title: Examples
+description: curl examples for signing in, reading accounts and dues, adding an entry and uploading a statement.
+sidebar:
+  order: 4
+---
+import { Aside } from '@astrojs/starlight/components';
+
+These examples use `curl` against `https://your-server`. Replace the host, email, password and ids with your own. Responses are shortened.
+
+<Aside type="caution">
+Try writes against a test household, not your real books. Every entry you add here appears in the app straight away.
+</Aside>
+
+## Sign in
+
+Send `X-Client: native` so the refresh token comes back in the body.
+
+```sh
+curl -s https://your-server/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -H 'X-Client: native' \
+  -d '{"email": "you@example.com", "password": "your-password", "device": "My script"}'
+```
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs…",
+  "token_type": "bearer",
+  "expires_in": 900,
+  "refresh_token": "Q2x7…",
+  "user": { "id": "…", "email": "you@example.com", "display_name": "Asha", "totp_enabled": false },
+  "household_id": "…",
+  "member_id": "…",
+  "role": "owner"
+}
+```
+
+Keep the access token in a variable for the requests below:
+
+```sh
+TOKEN='eyJhbGciOiJIUzI1NiIs…'
+```
+
+If two-step sign-in is on, the first attempt answers `401` with `{"detail": "totp_required"}`. Send it again with the code:
+
+```sh
+curl -s https://your-server/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -H 'X-Client: native' \
+  -d '{"email": "you@example.com", "password": "your-password", "totp_code": "123456"}'
+```
+
+### Refresh the access token
+
+The access token lasts 15 minutes. Swap the refresh token for a new pair, and keep the new refresh token, because the old one now works only once.
+
+```sh
+curl -s https://your-server/api/v1/auth/refresh \
+  -H 'Content-Type: application/json' \
+  -H 'X-Client: native' \
+  -d '{"refresh_token": "Q2x7…"}'
+```
+
+## List accounts
+
+```sh
+curl -s https://your-server/api/v1/accounts \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+[
+  {
+    "id": "7d1e3c52-9b0a-4a8e-8f3c-5a2b6e4d1c90",
+    "kind": "bank",
+    "name": "HDFC Salary",
+    "institution": "HDFC Bank",
+    "last4": "4821",
+    "balance": "84250.00",
+    "opening_balance": "50000.00",
+    "opening_date": "2026-04-01",
+    "is_active": true,
+    "is_liability": false,
+    "include_in_safe_to_spend": true
+  }
+]
+```
+
+Amounts are decimal strings in the household's currency. Add `?include_inactive=true` to include archived accounts.
+
+## Add a transaction
+
+Spending is `debit` and money in is `credit`; the amount is always positive. Leave out `category_id` and the server sorts the entry from its payee and note.
+
+```sh
+curl -s https://your-server/api/v1/transactions \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "id": "0b6f1c1e-6a1d-4f53-9a4e-2d7c1a9b8e11",
+        "account_id": "7d1e3c52-9b0a-4a8e-8f3c-5a2b6e4d1c90",
+        "date": "2026-10-15",
+        "amount": "450.00",
+        "direction": "debit",
+        "payee": "Milk",
+        "note": "Two weeks"
+      }'
+```
+
+The server answers `201` with a list of the rows it wrote: one for an entry, two for a transfer (add `to_account_id` for that).
+
+The `id` is optional. If you make your own UUID and send it, a retry after a dropped connection returns the entry already saved instead of adding it twice.
+
+## Get what's due
+
+```sh
+curl -s 'https://your-server/api/v1/insights/dues?days=14' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+[
+  {
+    "date": "2026-10-18",
+    "title": "Axis card bill",
+    "amount": "18640.00",
+    "min_due": "932.00",
+    "direction": "debit",
+    "kind": "card_payment",
+    "source": "card_statement",
+    "statement_id": "…",
+    "card_id": "…",
+    "transaction_id": null,
+    "account_name": "Axis card",
+    "overdue": false
+  },
+  {
+    "date": "2026-10-20",
+    "title": "School fee",
+    "amount": "24000.00",
+    "min_due": null,
+    "direction": "debit",
+    "kind": "expense",
+    "source": "recurring",
+    "transaction_id": "…",
+    "statement_id": null,
+    "card_id": null,
+    "account_name": "HDFC Salary",
+    "overdue": false
+  }
+]
+```
+
+`days` can be 1 to 180 and defaults to 30. Items with `overdue: true` were due before today and aren't paid yet. To mark a bill as paid, call `POST /transactions/{transaction_id}/confirm`.
+
+## Upload a statement
+
+Send one or more files as `files` in a multipart form. PDFs, photos, screenshots, CSV and Excel files are accepted, up to 20 files of 25 MB each.
+
+```sh
+curl -s https://your-server/api/v1/inbox/upload \
+  -H "Authorization: Bearer $TOKEN" \
+  -F 'files=@hdfc-september.pdf'
+```
+
+```json
+[
+  {
+    "id": "e1b0…",
+    "attachment_id": "…",
+    "filename": "hdfc-september.pdf",
+    "mime": "application/pdf",
+    "size": 482113,
+    "status": "queued",
+    "doc_type": "",
+    "summary": "",
+    "error": "",
+    "counts": {}
+  }
+]
+```
+
+The file is read in the background. Check on it with its `id`:
+
+```sh
+curl -s https://your-server/api/v1/inbox/e1b0… \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+`status` moves through `queued` and `reading` to `review` (items wait for you) or `done`. It can also be `needs_password` or `failed`, with the reason in `error`.
+
+- For a locked PDF, send the password, and set `remember` to try it on later statements:
+
+  ```sh
+  curl -s https://your-server/api/v1/inbox/e1b0…/password \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    -d '{"password": "ASHA1985", "remember": true}'
+  ```
+
+- To add every waiting item from the file:
+
+  ```sh
+  curl -s -X POST https://your-server/api/v1/inbox/e1b0…/approve-all \
+    -H "Authorization: Bearer $TOKEN"
+  ```
+
+Uploading the same file again returns the earlier result instead of reading it twice. Reading needs AI on the server and for your household; without it the file ends as `failed`. See [AI on your server](/ai/server-ai/).
+
+## Check the server
+
+These need no token:
+
+```sh
+curl -s https://your-server/health
+curl -s https://your-server/api/v1/meta
+```

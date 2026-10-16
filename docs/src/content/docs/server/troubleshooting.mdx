@@ -1,0 +1,113 @@
+---
+title: Troubleshooting
+description: Fixes for common problems when running a Coffernest server, with the messages you'll see.
+sidebar:
+  order: 9
+---
+import { Aside } from '@astrojs/starlight/components';
+
+Most problems show up in the API's log. Start there:
+
+```bash
+docker compose logs --tail 200 api
+docker compose ps
+```
+
+## The app says "Couldn't reach that server."
+
+The app checks `/health` when you tap **Check connection**, and it only connects when the answer is a success. Work through these in order.
+
+1. Check the address. If you typed it without `http://` or `https://`, the app adds `https://`. For a server at home without HTTPS, type `http://` yourself, for example `http://192.168.1.20:8080`.
+2. Check the server is healthy. On the server, run `curl http://localhost:8080/health`. If either part reports `false`, the app won't connect even though the server is running; see the next section.
+3. Check the phone can reach the machine. Open the same address followed by `/health` in Safari on the iPhone. If Safari can't load it, make sure the phone is on the same Wi-Fi and that a firewall on the server allows port 8080.
+4. Check local network access. On the iPhone, go to **Settings › Privacy & Security › Local Network** and turn on Coffernest.
+5. Check you aren't using plain HTTP to a public address. iOS only lets the app use `http://` for local network addresses. A domain name, or a Tailscale `ts.net` name, needs HTTPS. See [Domain and HTTPS](/server/https/).
+
+## The health check fails
+
+`/health` answers `{"ok":true,"db":true,"s3":true}` when all is well, and status 503 with the failing part set to `false` otherwise.
+
+### `"db":false`
+
+Postgres isn't reachable. Check `docker compose ps` shows `postgres` as healthy. If the log has `password authentication failed for user "coffernest"`, the password in `.env` no longer matches the database. Postgres only takes `POSTGRES_PASSWORD` when its volume is first created, so changing it later breaks the connection. Put the original value back, or change the password inside Postgres to match:
+
+```bash
+docker compose exec postgres psql -U coffernest -c "alter user coffernest with password 'the-value-in-env'"
+```
+
+### `"s3":false`
+
+The API can't see the bucket. Check `minio` is running. The log line `could not ensure S3 bucket` at start-up means the server couldn't create the bucket; check `S3_ACCESS_KEY` and `S3_SECRET_KEY`, and for an external bucket, `S3_ENDPOINT`, `S3_REGION` and the key's permissions. See [File storage](/server/storage/).
+
+## The API container keeps restarting
+
+- `jwt_secret` with `String should have at least 32 characters`: `JWT_SECRET` is empty or too short. Make one with `openssl rand -hex 32`.
+- `set POSTGRES_PASSWORD in .env` (or `S3_ACCESS_KEY`, `S3_SECRET_KEY`) when you run `docker compose up`: that value is missing from `.env`.
+- An error from Alembic: a database migration failed. Keep the log, restore your pre-update dump if you need to, and see [Updating](/server/updating/).
+
+## Sign-up is closed
+
+With `ALLOW_REGISTRATION=false`, only the first account on a server can sign up freely. After that, a new email gets "Ask your family's admin to add this email first".
+
+- If you're the admin, add their email in **Settings › Household › Add family member**, then have them tap **Sign up** again with exactly that email.
+- If **Set up this server** doesn't appear on a server you just installed, someone has already signed up. Ask the server for its state:
+
+  ```bash
+  curl -s http://localhost:8080/api/v1/meta
+  ```
+
+  `"first_user":true` means the next account becomes the admin. If a test account took the seat, sign in with it and delete it (**Settings**, tap the name at the top, **Delete account**); the server's own demo account never counts.
+- "An account with this e-mail exists" means that email already has an account on this server. Sign in instead.
+- "This email is kept for the demo" means the email is the server's `DEMO_EMAIL`.
+
+## Sign-in is refused
+
+| Message | What to do |
+|---|---|
+| Wrong e-mail or password | Check both. Emails aren't case-sensitive. |
+| Too many attempts. Wait a minute and try again. | A lockout after failed attempts; see [Security](/server/security/). |
+| Wrong verification code | The two-step code was wrong or already used. If codes from a correct authenticator keep failing, check the server's clock (below). A recovery code works in the same box. |
+| You've been signed out. Sign in again to continue. | The device's session ended, for example because the password was changed, it was signed out from another device, or it wasn't used for 30 days. |
+
+If everyone in the family is locked out at once behind a proxy, the server is counting the proxy's address; set `TRUSTED_PROXY_HEADER`. To clear every lockout now:
+
+```bash
+docker compose exec postgres psql -U coffernest -c "delete from login_throttle"
+```
+
+## Uploads or documents fail
+
+| What you see | What to do |
+|---|---|
+| Upload a PDF, image or CSV | Only PDF, JPEG, PNG, WebP, HEIC, HEIF and CSV files are accepted. |
+| File is over 25 MB | That's the limit for one file. |
+| 413 Request Entity Too Large, from nginx | Raise `client_max_body_size`; see [Domain and HTTPS](/server/https/). |
+| Files upload but won't open | The phone can't reach `S3_PUBLIC_URL`. Check that address works from the phone, and that it uses HTTPS when you're away from home. |
+| `SignatureDoesNotMatch` when opening a file | The proxy in front of MinIO changes the `Host` header, or `S3_PUBLIC_URL` doesn't match the address the phone uses. The proxy must pass the host through unchanged. |
+| File hasn't arrived in storage yet | A client using a presigned upload called `/complete` before its upload finished, or the upload to the bucket failed. |
+
+## Restoring a backup fails
+
+| Message | What to do |
+|---|---|
+| That passphrase doesn't open this backup | The passphrase is wrong. |
+| That isn't a Coffernest backup file, or This backup file is damaged | The file is incomplete or isn't a `.cnz` backup. Download it again. |
+| This backup was made by a newer version of Coffernest | Update the server first. |
+| That backup is over 200 MB | That's the largest file the server accepts. Export again with **Include documents** off. |
+| Type the household name exactly to confirm | Type the name of the household you're replacing, not the one in the backup. |
+
+## Dates, reminders and the clock
+
+If reminders arrive at the wrong hour, or "today" seems a day off around midnight, check the time zone. The background jobs use `TIMEZONE`, which is `Asia/Kolkata` unless you set it. Set your own IANA name, such as `TIMEZONE=Europe/London`, and recreate the API container. Reminders go out from 08:00 in that zone.
+
+If two-step codes always fail, or devices sign out early, the server's clock is probably wrong. Compare `date -u` on the server with the real time. On most Linux systems, `timedatectl` shows whether time sync is on; turn it on with `sudo timedatectl set-ntp true`.
+
+If bills don't turn into expected entries, check the background jobs. They only run with `RUN_WORKER=true`, which the standard compose file sets. They run every 15 minutes.
+
+## The assistant isn't offered
+
+The server has `AI_PROVIDER=none`, or the household owner hasn't turned the assistant on in Settings. See [AI on your server](/ai/server-ai/).
+
+<Aside type="tip">
+Still stuck? Open an issue on [GitHub](https://github.com/vkfolio/coffernest/issues) with the output of `docker compose ps` and the relevant lines from `docker compose logs api`. Remove any secrets first. Security problems go through private reporting instead; see [Security](/server/security/).
+</Aside>

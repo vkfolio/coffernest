@@ -1,0 +1,132 @@
+---
+title: Configuration
+description: Every environment variable the Coffernest server reads, with its default and what it changes.
+sidebar:
+  order: 2
+---
+import { Aside, Badge } from '@astrojs/starlight/components';
+
+The server reads its settings from environment variables. With the bundled Docker Compose file you put them in `.env` next to `docker-compose.yml`. Names aren't case-sensitive, and anything the server doesn't know is ignored.
+
+Defaults below are the server's own. The self-hosting example file (`.env.selfhost.example`) and the Docker image set some of them differently; those cases are noted. Values marked <Badge text="Secret" variant="caution" /> should be long and random (`openssl rand -hex 32`) and never shared.
+
+## Applying a change
+
+Edit `.env`, then recreate the API container so it picks up the new values:
+
+```bash
+docker compose up -d --force-recreate api
+```
+
+<Aside type="caution">
+The bundled `docker-compose.yml` sets `DATABASE_URL`, `S3_ENDPOINT`, `S3_BUCKET` and `RUN_WORKER` itself, under `environment:`. Those win over `.env`, so to change them you edit `docker-compose.yml`.
+</Aside>
+
+## Core
+
+| Variable | Default | What it does |
+|---|---|---|
+| `PUBLIC_URL` | `http://localhost:8000` | The address the apps use to reach the API, such as `https://money.example.com`. It builds the links to the privacy and terms pages and identifies the server to connected AI apps. The example file sets `http://localhost:8080`. |
+| `TIMEZONE` | `Asia/Kolkata` | The time zone the background jobs use to decide what "today" is. Reminders go out from 08:00 in this zone. Use an IANA name such as `Europe/London`. |
+| `RUN_WORKER` | `false` | Runs the background jobs inside the API process: expected entries from repeating rules, auto-debits, due-date reminders and the demo account. The Docker image and the compose file set it to `true`. |
+| `MATERIALIZE_DAYS_AHEAD` | `60` | How many days ahead repeating rules are turned into expected entries. |
+| `ENV` | `dev` | `dev`, `test` or `prod`. The Docker image sets `prod`, which marks sign-in cookies as secure and warns at start-up if `SECRET_ENC_KEY` is empty. |
+| `PORT` | `8000` | The port the API listens on inside the container. Compose publishes it as 8080. |
+| `PRIVACY_URL` | empty | Your own privacy policy. Empty uses this server's `/privacy` page. |
+| `TERMS_URL` | empty | Your own terms. Empty uses this server's `/terms` page. |
+| `CORS_ORIGINS` | `["http://localhost:5173"]` | Web origins allowed to call the API from a browser, as a JSON list. The iPhone app doesn't need it. |
+| `MCP_ENABLED` | `true` | Serves `/mcp`, so AI apps you approve can read your books. See **Settings › Connections** in the app. |
+
+## Database
+
+| Variable | Default | What it does |
+|---|---|---|
+| `DATABASE_URL` | `postgresql+asyncpg://coffernest:coffernest@localhost:5433/coffernest` | The Postgres database. A `postgres://` or `postgresql://` address from a hosting panel works too; it's switched to the right driver. Compose sets this for you. <Badge text="Secret" variant="caution" /> |
+| `POSTGRES_PASSWORD` | none | Read by Docker Compose, not the server. It sets the bundled Postgres password and is put into `DATABASE_URL`. Compose won't start without it. <Badge text="Secret" variant="caution" /> |
+
+<Aside type="caution">
+Postgres takes `POSTGRES_PASSWORD` only when it first creates its data volume. Changing it in `.env` later doesn't change the database password, and the API will no longer connect.
+</Aside>
+
+## Storage
+
+Bills and statements are kept in an S3-compatible bucket. See [File storage](/server/storage/).
+
+| Variable | Default | What it does |
+|---|---|---|
+| `S3_ENDPOINT` | `http://localhost:9000` | Where the server itself reaches the bucket. Compose sets `http://minio:9000`. |
+| `S3_PUBLIC_URL` | `http://localhost:9000` | Where phones reach the bucket. Links to view or upload a file are signed for this address, so it must work from your iPhone. |
+| `S3_BUCKET` | `coffernest` | The bucket name. The server creates it at start-up if it's missing. |
+| `S3_REGION` | `us-east-1` | The region used to sign requests. |
+| `S3_ACCESS_KEY` | `minioadmin` | The bucket's access key. In the bundled setup it's also MinIO's admin user. The example file sets `coffernest`. |
+| `S3_SECRET_KEY` | `minioadmin` | The bucket's secret key, and MinIO's admin password in the bundled setup. <Badge text="Secret" variant="caution" /> |
+
+## Sign-in and security
+
+| Variable | Default | What it does |
+|---|---|---|
+| `JWT_SECRET` | a development value | Signs sign-in tokens. Must be at least 32 characters or the server won't start. <Badge text="Secret" variant="caution" /> |
+| `SECRET_ENC_KEY` | empty | Encrypts saved account numbers and remembered statement passwords. Empty falls back to a key made from `JWT_SECRET`. Set it before you save any, and never change or lose it. <Badge text="Secret" variant="caution" /> |
+| `ALLOW_REGISTRATION` | `false` | `false`: the first account becomes the admin, then only emails the admin adds can sign up. `true`: anyone who can reach the server can start a household. |
+| `TRUSTED_PROXY_HEADER` | empty | The header your reverse proxy puts the visitor's IP address in, such as `CF-Connecting-IP` or `X-Real-IP`. Sign-in lockouts and the device list use it. Leave it empty if the API is reached directly. See [Domain and HTTPS](/server/https/). |
+| `ACCESS_TTL_S` | `900` | How long a sign-in token lasts, in seconds (15 minutes). The app renews it quietly. |
+| `REFRESH_TTL_S` | `2592000` | How long a device stays signed in without being used, in seconds (30 days). |
+| `COOKIE_DOMAIN` | none | The cookie domain for browser sign-ins. The iPhone app doesn't use cookies. |
+
+## Email
+
+The server doesn't send email and has no mail settings. Adding a family member only records their email; you tell them yourself.
+
+## Notifications
+
+| Variable | Default | What it does |
+|---|---|---|
+| `VAPID_PUBLIC_KEY` | empty | Web Push for browsers. Empty turns it off. The iPhone app doesn't use it. |
+| `VAPID_PRIVATE_KEY` | empty | The private half of the Web Push keys. <Badge text="Secret" variant="caution" /> |
+| `VAPID_SUBJECT` | `mailto:owner@example.com` | A contact address sent to push services. |
+
+Make a key pair with:
+
+```bash
+docker compose run --rm api coffernest vapid
+```
+
+## Assistant and AI
+
+With `AI_PROVIDER=none` everything works except the built-in assistant and reading PDF statements. More in [AI on your server](/ai/server-ai/).
+
+| Variable | Default | What it does |
+|---|---|---|
+| `AI_PROVIDER` | `none` | `none`, `claude_agent` or `openai_compat`. |
+| `ANTHROPIC_API_KEY` | empty | For `claude_agent`: an Anthropic API key. <Badge text="Secret" variant="caution" /> |
+| `CLAUDE_CODE_OAUTH_TOKEN` | empty | For `claude_agent`, instead of an API key: a token from `claude setup-token`. <Badge text="Secret" variant="caution" /> |
+| `CLAUDE_MODEL` | `claude-opus-5-5` | The Claude model used with `claude_agent`. |
+| `LLM_BASE_URL` | `https://api.openai.com/v1` | For `openai_compat`: the API address of OpenAI, OpenRouter, Ollama, LM Studio or another compatible service. |
+| `LLM_API_KEY` | empty | For `openai_compat`: the key for that service. <Badge text="Secret" variant="caution" /> |
+| `LLM_MODEL` | `gpt-4.1-mini` | For `openai_compat`: the model name. |
+| `AUTO_ADD_CONFIDENCE` | `0.85` | Rows read from a statement with a confidence (0 to 1) below this are held in **Statements to check** for you to look over, rather than being ready to add straight away. |
+
+Spaces, line breaks and quotes pasted into the three keys are removed before use.
+
+## Demo account
+
+| Variable | Default | What it does |
+|---|---|---|
+| `SEED_DEMO` | `false` | Keeps a demo account with a year of sample books. |
+| `DEMO_EMAIL` | empty | The demo account's email. Nobody else can sign up with it. |
+| `DEMO_PASSWORD` | empty | The demo account's password, at least 10 characters. If it's shorter, the demo stays off. |
+| `DEMO_REFRESH_DAYS` | `30` | How often, in days, the demo's books are started afresh. |
+
+See [Demo account](/server/demo-account/).
+
+## Fixed limits
+
+These are set in the code, not by environment variables.
+
+| Limit | Value |
+|---|---|
+| Password length | 10 to 200 characters |
+| One uploaded file | 25 MB; PDF, JPEG, PNG, WebP, HEIC, HEIF or CSV |
+| Backup file to restore | 200 MB |
+| Backup passphrase | at least 10 characters |
+| Sign-in attempts | 5 per account and 8 per IP address before a lockout. See [Security](/server/security/). |

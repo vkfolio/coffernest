@@ -1,0 +1,52 @@
+---
+title: Coffernest
+description: Guides for the Coffernest iPhone app and the open-source server your family can run.
+template: splash
+pagefind: false
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+---
+
+import { Image } from 'astro:assets';
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import icon from '~/assets/icon.png';
+import home from '~/assets/shots/home.png';
+import dues from '~/assets/shots/dues.png';
+import networth from '~/assets/shots/networth.png';
+
+<div class="cn-hero not-content">
+  <Image class="cn-icon" src={icon} alt="" width={96} height={96} />
+  <h1>Your household's money,<br />in one calm place.</h1>
+  <p class="cn-lede">How to use the Coffernest iPhone app, run your own server for the family, set up the assistant and build on the API.</p>
+  <div class="cn-actions">
+    <a class="cn-btn" href="/start/overview/">Get started</a>
+    <a class="cn-btn cn-secondary" href="/server/install/">Run your own server</a>
+  </div>
+  <div class="cn-hero-shots">
+    <Image class="cn-side" src={dues} alt="Coming up: bills and EMIs due this week" widths={[420]} />
+    <Image src={home} alt="Home: what's free to spend this month" widths={[500]} />
+    <Image class="cn-side" src={networth} alt="Net worth over time" widths={[420]} />
+  </div>
+</div>
+
+<h2 class="cn-section-title not-content">Find what you need</h2>
+<p class="cn-section-sub not-content">Start with the app, add your family, or set up a server of your own.</p>
+
+<CardGrid>
+  <LinkCard title="Using the app" description="Free to spend, bills and dues, cards, loans, spending and net worth." href="/app/home/" />
+  <LinkCard title="Family" description="Add the people you share money with. Only the admin pays." href="/family/members/" />
+  <LinkCard title="Assistant and AI" description="Ask about your own numbers, on the iPhone or on your server." href="/ai/assistant/" />
+  <LinkCard title="Run your own server" description="One Docker Compose file. Your data stays on hardware you control." href="/server/install/" />
+  <LinkCard title="Skills" description="Add, change or remove the playbooks the assistant follows." href="/ai/skills/" />
+  <LinkCard title="API" description="Sign in, read and write the books, and sync from your own tools." href="/api/overview/" />
+</CardGrid>
+
+<h2 class="cn-section-title not-content">Three ways to use it</h2>
+<p class="cn-section-sub not-content">Pick one on the first screen. You can move later.</p>
+
+<div class="cn-grid3">
+  <Card title="On this iPhone" icon="phone">No account and no server. Your books stay on the phone.</Card>
+  <Card title="With a server" icon="laptop">One set of books for the whole family, each person with their own sign-in.</Card>
+  <Card title="Sample data" icon="open-book">Look around a made-up household first. Nothing you change is kept.</Card>
+</div>

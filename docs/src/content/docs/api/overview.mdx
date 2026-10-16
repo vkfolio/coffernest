@@ -1,0 +1,157 @@
+---
+title: API overview
+description: Base URL, signing in, tokens, errors, limits and how amounts and dates are written.
+sidebar:
+  order: 1
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+Every Coffernest server has the same HTTP API. The iPhone app uses it, and you can use it from scripts or your own tools. It is JSON over HTTPS, and every request acts for one signed-in member of one household.
+
+## Base URL and reference
+
+All routes live under `/api/v1` on your server:
+
+```
+https://your-server/api/v1
+```
+
+| Address | What it is |
+|---|---|
+| `/api/v1/docs` | Interactive reference where you can try each route |
+| `/api/v1/openapi.json` | The OpenAPI schema, for generating clients |
+| `/api/v1/meta` | What this server offers, readable without signing in |
+| `/health` | Health check for monitoring |
+
+The sign-in routes for connected apps (`/oauth/…`, `/.well-known/…`) and the MCP endpoint at `/mcp` are not in the schema. They are covered in [Connect Claude and other apps](/ai/connectors/).
+
+## Sign in
+
+<Steps>
+1. Send your email and password to `POST /api/v1/auth/login`. Add the header `X-Client: native` so the refresh token comes back in the response body.
+2. If your account uses two-step sign-in and you didn't send a code, the server answers `401` with `"detail": "totp_required"`. Send the same request again with `totp_code` set to the 6-digit code from your authenticator app, or to one of your unused recovery codes.
+3. Use the `access_token` from the response on every other request:
+
+   ```
+   Authorization: Bearer <access_token>
+   ```
+</Steps>
+
+The response also gives `expires_in` (seconds), your `user`, `household_id`, `member_id` and `role`. See [Examples](/api/examples/#sign-in) for the full exchange.
+
+Without `X-Client: native`, the server treats the caller as a browser: it sets the refresh token as an HTTP-only cookie limited to `/api/v1/auth` instead of returning it.
+
+### Tokens and refresh
+
+| Token | Lifetime | Setting |
+|---|---|---|
+| Access token | 15 minutes | `ACCESS_TTL_S` |
+| Refresh token | 30 days from when it was issued | `REFRESH_TTL_S` |
+
+When the access token runs out, send the refresh token to `POST /api/v1/auth/refresh` as `{"refresh_token": "…"}` with `X-Client: native`. You get a new access token and a new refresh token. Each refresh token works once. Two requests using the same one within 15 seconds are treated as a race and both succeed; a spent token sent later ends that whole device session, because it suggests the token was copied.
+
+Other session routes:
+
+- `POST /api/v1/auth/logout` with the refresh token ends this session.
+- `POST /api/v1/auth/logout-all` ends every session for the account. Access tokens already issued stop working too.
+- `GET /api/v1/auth/sessions` lists signed-in devices, and `DELETE /api/v1/auth/sessions/{family_id}` signs one out.
+
+### Two-step sign-in
+
+`POST /api/v1/auth/totp/setup` returns a secret and an `otpauth://` link for your authenticator app. Confirm with a code at `POST /api/v1/auth/totp/confirm`, which returns your recovery codes once. `POST /api/v1/auth/totp/disable` turns it off and needs your password and a code.
+
+### Creating an account
+
+`POST /api/v1/auth/register` creates an account and signs it in. On a new server the first account becomes the admin. After that, only people the admin invited by email can sign up, unless the server sets `ALLOW_REGISTRATION=true`. `GET /api/v1/meta` tells you which applies (`first_user`, `registration_open`) and the minimum password length.
+
+<Aside type="note">
+The API only accepts access tokens from signing in. API tokens (`cn_pat_…`) and connector sign-ins made in **Settings › Connections** work only at the MCP endpoint, not here.
+</Aside>
+
+## Roles
+
+Each member has a role in their household, and routes check it.
+
+| Role | Can do |
+|---|---|
+| `owner` | Everything, including members, invites, household settings, backups and deleting the household |
+| `adult` | Read and change money data |
+| `viewer` | Read only |
+
+A viewer trying to change something gets `403` with "Viewers can't change data". An owner-only route answers others with `403` and "Only the household owner can do this".
+
+## Errors
+
+Errors are JSON with a `detail` field, written to be shown to a person:
+
+```json
+{ "detail": "Wrong e-mail or password" }
+```
+
+Requests that don't match the schema get `422`, with `detail` as a list that names each field and the problem:
+
+```json
+{ "detail": [ { "type": "missing", "loc": ["body", "account_id"], "msg": "Field required", "input": { "amount": "450" } } ] }
+```
+
+| Status | Usually means |
+|---|---|
+| `400` | The request doesn't make sense, for example no files in an upload |
+| `401` | Missing, expired or revoked token, or `totp_required` |
+| `403` | Your role doesn't allow this, or AI is off for the household |
+| `404` | Not found in your household |
+| `409` | Conflicts with what's there, such as a duplicate or nothing to undo |
+| `413` | Too large: a file over 25 MB, or more than 5,000 changes in one sync |
+| `415` | A file type the inbox can't read |
+| `429` | Too many attempts, or suggestions refreshed too recently |
+| `502` | The AI provider failed or isn't reachable |
+| `503` | AI isn't set up on the server, or `/health` found a problem |
+
+## Limits
+
+There is no general request rate limit. These limits apply:
+
+- **Sign-in lockouts.** After 8 failed attempts from one address, or 5 for one account, further attempts are locked out for a time that doubles with each failure: from 30 seconds up to an hour per address, and from 60 seconds up to 15 minutes per account. A locked-out `POST /auth/login` answers `429` with a `Retry-After` header. A successful sign-in clears the count. The same rules apply to connector sign-ins.
+- **Suggestions.** `POST /ai/suggestions/refresh` can run once every 10 minutes per household.
+- **Inbox uploads.** Up to 20 files per request, 25 MB each.
+- **Sync.** Up to 5,000 changed rows and deletes per request.
+- **Lists.** `GET /transactions` returns up to 200 entries per page (50 by default).
+
+## Amounts, currency and dates
+
+**Amounts** are decimal numbers in the household's currency, in its main unit (rupees, not paise; dollars, not cents), with up to two decimal places. Responses send them as strings, such as `"1250.00"`, so no precision is lost. In requests you can send a string or a number. An amount is always positive; `direction` says whether money went out (`debit`) or came in (`credit`).
+
+**Currency.** A household has one currency, a three-letter code such as `INR`, `USD` or `EUR`. Amounts are never converted between currencies.
+
+**Dates** of entries, bills and statements are plain calendar dates, `YYYY-MM-DD`, with no time or time zone. **Timestamps** such as `created_at` and `updated_at` are ISO 8601 with a time zone offset. The household has its own time zone (an IANA name such as `Asia/Kolkata`) and financial-year start month, set at sign-up or with `PATCH /household`.
+
+**Ids** are UUIDs.
+
+**Paging.** `GET /transactions` returns `items` and a `next_cursor`. Pass `cursor=<next_cursor>` to get the next page; it is `null` on the last one.
+
+## Live updates
+
+`GET /api/v1/events` is a server-sent events stream. It sends `event: changed` with `{"topic": "data"}`, `"inbox"` or `"chat"` whenever something in the household changes, so a client knows when to fetch again.
+
+## Health and meta
+
+`GET /health` needs no sign-in. It checks the database and file storage:
+
+```json
+{ "ok": true, "db": true, "s3": true }
+```
+
+It answers `200` when both are fine and `503` otherwise.
+
+`GET /api/v1/meta` also needs no sign-in. Apps read it before showing a sign-in screen:
+
+| Field | Meaning |
+|---|---|
+| `name`, `version` | `Coffernest` and the server version |
+| `registration_open` | Anyone can sign up (`ALLOW_REGISTRATION`) |
+| `first_user` | Nobody has signed up yet, so the next account becomes the admin |
+| `ai_available`, `ai_provider` | Whether AI is set up, and which provider (`none`, `claude_agent` or `openai_compat`) |
+| `password_min_length` | Minimum password length for new accounts |
+| `account_deletion` | Accounts can be deleted from the app |
+| `privacy_url`, `terms_url` | This server's privacy policy and terms |
+| `source_url` | Where the server's source code is |

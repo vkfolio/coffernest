@@ -192,6 +192,13 @@ async def test_net_worth_and_money_in_out(client: httpx.AsyncClient) -> None:
     assert Decimal(io_["transfers"]) == Decimal("10000")
     mine = next(a for a in io_["by_account"] if a["account_id"] == acct["id"])
     assert Decimal(mine["in"]) == Decimal("120000") and Decimal(mine["out"]) == Decimal("28000")
+    # Apps up to 1.0 build 8 send the month as YYYY-MM.
+    short = (await client.get(f"{API}/insights/inout?month={today:%Y-%m}")).json()
+    assert short["income"] == io_["income"]
+    cats = await client.get(f"{API}/insights/categories?month={today:%Y-%m}")
+    assert cats.status_code == 200
+    first = today.replace(day=1)
+    assert cats.json() == (await client.get(f"{API}/insights/categories?month={first}")).json()
 
     outs = (await client.get(f"{API}/transactions?direction=debit")).json()["items"]
     kinds = {t["kind"] for t in outs}

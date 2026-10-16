@@ -1,0 +1,102 @@
+---
+title: Adding entries
+description: Use Quick Add for expenses, income and transfers, type an entry the way you'd say it, and edit or undo entries.
+sidebar:
+  order: 2
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import quickAdd from '~/assets/shots/quick-add.png';
+
+Quick Add is how most entries go into Coffernest. An everyday expense takes an amount, a category and **Save**.
+
+<Shots items={[{ src: quickAdd, caption: 'Quick Add' }]} />
+
+## Add an expense
+
+<Steps>
+1. Tap **Add**, the round button in the middle of the tab bar.
+2. Check that **Expense** is selected at the top.
+3. Type the amount on the keypad.
+4. Tap a category. If the one you want isn't shown, tap **More** for the full list.
+5. If you've added people, tap who it was for next to **For**.
+6. Tap **Save expense**.
+</Steps>
+
+The line above the keypad shows the date and the account. It starts on **Today** and the account you used last. Tap the date to choose **Yesterday** or **Pick a date…**, and tap the account name to change it.
+
+Tap **···** (More options) for the rest:
+
+- **Paid to**, the shop or person you paid
+- **Note**
+- **Repeat**: **Doesn't repeat**, **Monthly**, **Quarterly** or **Yearly**. A repeating entry also shows up as expected next time. See [Bills and dues](/app/dues/).
+- **Date**
+
+If you close Quick Add after typing an amount, Coffernest asks **Discard this entry?** so nothing is lost by accident.
+
+## Type it the way you'd say it
+
+For expenses, you can describe the entry in a few words instead.
+
+<Steps>
+1. In Quick Add, tap **Or type it: "aarav uniform 1200"**.
+2. Type something like `aarav uniform 1200` or `petrol 2000 yesterday`.
+3. Check the line underneath. It starts with "Read as" and lists the amount, category, person and place Coffernest understood.
+4. Change anything that's wrong, then tap **Save expense**.
+</Steps>
+
+Coffernest picks out:
+
+- the amount
+- the date, if you say "yesterday"
+- a person, if you use the name of someone you've added in **Settings › People**
+- a category, from words and places it knows ("petrol", "pharmacy", "rent") and from places you've sorted before
+- whatever's left as the place you paid
+
+Nothing is saved until you tap **Save**. On a server whose assistant is switched on, the server may also ask the assistant for a category when it can't find one.
+
+## Categories
+
+The category chips start with the ones you've used recently. Once you type an amount, Coffernest may pick a category for you, shown as "Suggested: Groceries" above the keypad, based on what you've usually spent that amount on. Tap a different chip to change it.
+
+You can save an expense without a category. Coffernest then tries to sort it from the place and note. If it can't, the entry waits in "entries need a category" on Home and Spending, where **Help me sort** goes through them. To add, rename or merge categories, see [Spending](/app/spending/#categories).
+
+## Add income
+
+Switch to **Income** at the top. Pick an income category, such as salary, and the account it went into, then tap **Save income**. In **···**, the first field is **From (payer)**.
+
+## Move money between your accounts
+
+Switch to **Transfer** for money that moves between your own accounts, such as cash taken out at an ATM or a top-up to a wallet. A transfer doesn't count as spending.
+
+<Steps>
+1. Choose the account it came **From**.
+2. Choose where it went. Tap the arrows between the two to swap them.
+3. Type the amount and tap **Save transfer**.
+</Steps>
+
+If the second account is a credit card, the entry is recorded as a card payment. If it's a loan, choose **EMI** or **Prepayment**. A bank, cash or wallet account can't send more than its balance; Coffernest says "Not enough in" that account.
+
+## When an entry matches a bill
+
+If you add an expense or income that looks like one Coffernest is expecting (same account, within three days and about the same amount), it marks the expected one as paid instead of adding a second entry. You'll see "Matched to an expected entry."
+
+## Undo, edit and delete
+
+After you save, a message at the bottom of the screen shows what was added, with **Undo**. Tap it to take the entry back out.
+
+To change an entry later, find it in **Activity** and:
+
+- swipe left and tap **Edit**, or
+- touch and hold it and choose **Edit**, or
+- tap it, then tap **Edit** at the top right.
+
+You can change the amount, the place, the date, the category, who it was for, the note and tags. If you change the category, Coffernest may offer to put other entries from the same place in the same category. Tap **Apply** to do that.
+
+To delete, swipe left and tap **Delete**, then tap **Undo** in the message if you change your mind. You can also open the entry and tap **Delete transaction**. Touch and hold an entry and choose **Duplicate** to start a new one with the same details.
+
+<Aside type="note">
+On a server, if you're offline, Quick Add still saves the entry on your iPhone and says "Saved. Waiting to sync." It appears under **Waiting to sync** in Activity and goes up as soon as you're back online.
+</Aside>
+
+If Add opens the unlock screen instead, your free trial has ended or hasn't started. See [Pricing](/start/pricing/). On a server where you have view-only access, the Add button isn't shown.

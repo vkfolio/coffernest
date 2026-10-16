@@ -1,0 +1,93 @@
+---
+title: File storage
+description: Where Coffernest keeps bills, receipts and statement PDFs, how uploads work, and how to use your own S3 or R2 bucket.
+sidebar:
+  order: 4
+---
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The books themselves live in Postgres. Files live in an S3-compatible bucket: bills and receipts attached to entries, statement PDFs you add to **Statements to check**, and the safety copy made before a backup is restored. The bundled Docker Compose file runs MinIO for this, and any S3-compatible service works instead.
+
+## What the server stores
+
+Each file sits under its household's own folder in the bucket, named after the household's id, then the year and month, for example `3f2c…/2026/10/9a1b…-electricity-bill.pdf`. When a household is deleted, everything under its folder goes too.
+
+One file can be up to 25 MB and must be a PDF, a JPEG, PNG, WebP, HEIC or HEIF image, or a CSV file. Anything else is refused with "Upload a PDF, image or CSV", and larger files with "File is over 25 MB".
+
+## How uploads and downloads work
+
+There are two ways a file reaches the bucket:
+
+- The iPhone app sends the file to the API, and the server puts it in the bucket.
+- Other clients can ask the server for a presigned upload link (`POST /api/v1/attachments`). The link is valid for 15 minutes and lets the client send the file straight to the bucket, so large PDFs never pass through the API. The client then calls `/complete`, and the server checks that the file arrived and isn't over the limit.
+
+To show you a file, the server hands the app a presigned download link, valid for one hour. The app fetches the file from the bucket directly.
+
+Both kinds of link are signed for `S3_PUBLIC_URL`, the bucket's address as your devices see it. If the phone can't reach that address, files upload but won't open. When you're away from home that address must use HTTPS too; see [Domain and HTTPS](/server/https/).
+
+## The bundled MinIO
+
+With the standard setup there's nothing to configure beyond `.env`:
+
+- `S3_ACCESS_KEY` and `S3_SECRET_KEY` become MinIO's admin user and password, and the API uses the same pair.
+- The API reaches MinIO inside Docker at `http://minio:9000` and uses a bucket called `coffernest`, which it creates on start if it's missing.
+- MinIO's data is in the `miniodata` Docker volume. Back it up with the database; see [Backups](/server/backups/).
+- Port 9000 is published so phones can reach it. MinIO's web console runs on port 9001 inside the container but isn't published. To use it, add `"9001:9001"` to the `minio` service's `ports` and open `http://<your-server>:9001`.
+
+`/health` reports `"s3":true` once the API can see the bucket.
+
+## Use an external bucket
+
+You can use Amazon S3, Cloudflare R2, Backblaze B2 or another S3-compatible service instead of MinIO.
+
+<Steps>
+
+1. Create a private bucket. Make an access key that can list the bucket and read, write and delete objects in it.
+
+2. In `docker-compose.yml`, remove the `minio` service, the `minio` entry under `api`'s `depends_on`, and the `miniodata` volume.
+
+3. Under `api`'s `environment:`, set the endpoint and bucket name. These two are set in the compose file, so `.env` alone won't change them.
+
+   ```yaml
+       environment:
+         S3_ENDPOINT: https://<account-id>.r2.cloudflarestorage.com
+         S3_BUCKET: coffernest-files
+   ```
+
+4. In `.env`, set the key pair, the public address and the region:
+
+   ```bash
+   S3_ACCESS_KEY=...
+   S3_SECRET_KEY=...
+   S3_PUBLIC_URL=https://<account-id>.r2.cloudflarestorage.com
+   S3_REGION=auto
+   ```
+
+5. Recreate the API and check `/health`.
+
+   ```bash
+   docker compose up -d --force-recreate api
+   curl http://localhost:8080/health
+   ```
+
+</Steps>
+
+<Tabs>
+<TabItem label="Cloudflare R2">
+Endpoint: `https://<account-id>.r2.cloudflarestorage.com`. Region: `auto`. Use an R2 API token with Object Read and Write on the bucket. `S3_PUBLIC_URL` is normally the same as `S3_ENDPOINT`.
+</TabItem>
+<TabItem label="Amazon S3">
+Endpoint: `https://s3.<region>.amazonaws.com`, for example `https://s3.eu-west-2.amazonaws.com`. Set `S3_REGION` to the same region. `S3_PUBLIC_URL` is the same as `S3_ENDPOINT`.
+</TabItem>
+</Tabs>
+
+A few things to know:
+
+- The server addresses buckets by path (`https://endpoint/bucket/key`), not by sub-domain. The service you choose must support this; R2, S3, B2 and MinIO all do.
+- `S3_ENDPOINT` and `S3_PUBLIC_URL` can differ. Use that when the server reaches the bucket on a private address and phones on a public one.
+- The bucket doesn't need to be public. Presigned links give access to one file for a short time.
+- The iPhone app doesn't upload through presigned links, so the bucket needs no CORS rules for it. A browser client using presigned uploads would need CORS on the bucket for its origin.
+
+<Aside type="note">
+Switching storage doesn't move existing files. Copy every object from the old bucket to the new one, keeping the same names, with a tool such as rclone or the MinIO client before you switch. Otherwise older attachments won't open.
+</Aside>

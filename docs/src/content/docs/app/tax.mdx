@@ -1,0 +1,76 @@
+---
+title: Tax summary
+description: See the home-loan and education-loan deductions in your loan schedules for this financial year, for households that use Indian rupees.
+sidebar:
+  order: 8
+---
+import { Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import tax from '~/assets/shots/tax.png';
+
+If your household uses Indian rupees, Coffernest adds up the loan deductions in your books for the current financial year: home-loan principal under 80C, home-loan interest under 24(b) and education-loan interest under 80E. It's an estimate worked out from your loan schedules, to help you plan. It isn't tax advice.
+
+<Shots items={[{ src: tax, caption: 'Tax' }]} />
+
+## Who sees it
+
+The Tax screen only appears when the household currency is INR, because 80C, 24(b) and 80E are Indian rules. If your household uses another currency, there's no Tax screen and the same place in the app is called **Checks** instead. See [Other currencies](#other-currencies) below.
+
+To change the household currency, see [Currency and region](/app/currency/).
+
+## Open the Tax screen
+
+You can get to it two ways:
+
+- Go to the **Spending** tab, choose **Tax** at the top, then tap **Tax, FY 2026–27** (the year shown is your current financial year).
+- Go to the **Accounts** tab and, under **Insights**, tap **Tax (FY 2026–27)**.
+
+The year follows the month your household's financial year starts. For most Indian households that's April, so the year runs April to March. If your year starts in January, the label is just the year, such as **2026**.
+
+## What it shows
+
+At the top is the financial year with its start and end dates, and **Deductions found so far**: the total of the three sections below it.
+
+Under **Deductions found**:
+
+- **80C: home loan principal**, shown against the ₹1,50,000 limit, with a bar for how much of the limit it uses.
+- **24(b): home loan interest**, shown against the ₹2,00,000 limit.
+- **80E · education loan interest**, when there is any. 80E has no upper limit, so it's shown as one figure.
+
+Coffernest caps the 80C and 24(b) figures at those limits when it adds up the total.
+
+Under **By loan**, each loan that counts towards a deduction is listed with its principal and interest for the year. Tap a loan to see the two figures separately. Figures for months that haven't happened yet are marked as estimates.
+
+At the bottom, **Export this year's transactions** saves a CSV of every entry in the financial year, which you can share with whoever does your taxes.
+
+<Aside type="note">
+The 80C limit is shared. Home-loan principal sits in the same ₹1.5 lakh as PF, PPF, ELSS and life insurance, which Coffernest doesn't count here. Check the figures against your lender's interest certificate before you file.
+</Aside>
+
+## Where the figures come from
+
+Coffernest reads each loan's EMI schedule for the whole financial year, including any prepayments you've recorded, and splits each EMI into principal and interest. Months still to come use the schedule as it stands today, so the total can change if your rate or EMI changes.
+
+A loan only counts if it's marked for one of the sections. The loan's page shows this as **Tax benefits**, with the sections it counts towards, for example **80C, 24(b)**.
+
+- Home loans that Coffernest reads from a statement are marked for 80C and 24(b) automatically.
+- Home loans added by the assistant on a Coffernest server are marked the same way.
+
+<Aside type="caution">
+The **New loan** form in the app doesn't have a switch for these sections, so a loan you add there by hand isn't counted on the Tax screen. If the Tax screen shows nothing for a home loan you know about, open the loan and check for the **Tax benefits** row.
+</Aside>
+
+## Other currencies
+
+If your household currency isn't INR, the third choice at the top of **Spending** is called **Checks**. It holds the same useful lists, without the Indian tax screen:
+
+- **Unusual activity**: entries that stand out from your usual spending.
+- **Coming up**: bills, EMIs and card dues that are due soon.
+- **Debt and EMIs**: your loans, cards and EMIs together.
+
+The assistant also leaves out tax questions for households that don't use rupees.
+
+## Good to know
+
+- The tax figures are estimates from what you've entered. They aren't tax advice and don't replace your lender's certificate or a tax professional.
+- Coffernest doesn't know which tax regime you've chosen, or whether a loan is shared with someone else. It shows each loan's full figures.

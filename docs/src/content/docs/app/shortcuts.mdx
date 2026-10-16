@@ -1,0 +1,100 @@
+---
+title: Widgets, Siri and Shortcuts
+description: Add Coffernest widgets to your Home Screen and Lock Screen, add an expense from Control Centre, and use Siri and the Shortcuts app.
+sidebar:
+  order: 10
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+You don't have to open Coffernest to see what's free to spend or to note an expense. Widgets show your numbers at a glance, a Control Centre button opens Quick Add, and Siri and Shortcuts can add entries or read out your figures.
+
+They work whether your books are on this iPhone or on a server, and always show the books you're using in the app.
+
+## Home Screen widgets
+
+Touch and hold an empty part of your Home Screen, tap **Edit › Add Widget**, then search for Coffernest. There are three:
+
+| Widget | Size | What it shows |
+|---|---|---|
+| **Safe to spend** | Small | What you can spend until month end, about how much a day, and how many days are left. |
+| **Add and safe to spend** | Medium | Safe to spend on the left, with your next bill. On the right, your three most recent spending categories and an **Add** button. |
+| **Overview** | Large | Safe to spend, net worth with a small chart and this month's change, and the next three things coming up. |
+
+Tap a category on **Add and safe to spend** and Quick Add opens with that category already picked, ready for the amount. Tap **Add** to start with no category. Tap safe to spend on any widget to open Coffernest at **Free to spend** on Home, with how it's worked out. On **Overview**, tap net worth to open your net worth.
+
+If you have view-only access, the medium widget shows safe to spend without the add buttons.
+
+### How fresh the numbers are
+
+Widgets update by themselves through the day, and again whenever you open the app. When the figures are more than an hour old, a widget says so, for example **As of 10:30**. If you see **Open the app to sign in**, you're signed out; open Coffernest and sign in again.
+
+## Lock Screen widgets
+
+Touch and hold the Lock Screen, tap **Customise**, then tap the widget area and choose **Safe to spend** from Coffernest. It comes in three shapes:
+
+- **Rectangular**: safe to spend, with the amount a day and the days left.
+- **Inline** (the line above the time): your next bill and its date, or safe to spend when nothing is due.
+- **Circular**: the number of days left this month.
+
+<Aside type="note">
+Amounts on the Lock Screen widget are hidden as dots by default, so anyone who picks up your phone can't see them. To show them, go to **Settings › Appearance and security** and turn off **Hide amounts on Lock Screen**. See [Privacy and security](/app/privacy/).
+</Aside>
+
+## Control Centre
+
+The **Add expense** control opens Coffernest straight to Quick Add, ready for an expense.
+
+<Steps>
+1. Open Control Centre and touch and hold an empty space.
+2. Tap **Add a Control**, then search for Coffernest.
+3. Choose **Add expense**.
+</Steps>
+
+You can also put **Add expense** at the bottom of your Lock Screen in place of the torch or camera, or on the Action button on iPhones that have one.
+
+## Siri
+
+Say any of these to Siri. You don't need to set anything up first.
+
+| Say | What happens |
+|---|---|
+| "Add an expense in Coffernest" | Siri asks for the amount, then saves the entry. |
+| "Record spending in Coffernest" | The same as above. |
+| "Add groceries expense in Coffernest" | Adds an expense in that category. Use any of your category names. |
+| "Open quick add in Coffernest" | Opens Quick Add in the app. |
+| "What's my safe to spend in Coffernest" | Reads out what you can spend, a day, and for how many days. |
+| "How much can I spend in Coffernest" | The same as above. |
+| "What's due in Coffernest" | Reads out bills, EMIs and card dues in the next 7 days. |
+| "What's my net worth in Coffernest" | Reads out your net worth and how it changed this month. |
+| "Ask Coffernest" | Siri asks for your question and reads the assistant's answer. |
+
+An entry added by Siri goes to the account you last used for that kind of entry, or your first bank account. Siri tells you the amount and category it saved. If you're offline, the entry is kept on the iPhone and sent when you're back online.
+
+**Ask Coffernest** uses your server's assistant, so it needs a server with its assistant turned on, and you need to have allowed it in the app first. It doesn't work in on-iPhone mode. See [AI on your server](/ai/server-ai/).
+
+## Shortcuts app
+
+The same actions are in the Shortcuts app, where you can run them from a shortcut, an automation or a Home Screen icon. Open **Shortcuts**, tap **+**, then **Add Action** and search for Coffernest.
+
+| Action | What it does | Options |
+|---|---|---|
+| **Add Expense or Income** | Saves an entry without opening the app. | Amount, Type (Expense or Income), Category, Account, Paid to |
+| **Open Quick Add** | Opens the app ready to add. | Type, Category |
+| **Safe to Spend** | Returns what you can spend until month end. | |
+| **What's Due** | Returns what's due in the next 7 days. | |
+| **Net Worth** | Returns your net worth and this month's change. | |
+| **Ask Coffernest** | Asks the assistant and returns its answer. | Question |
+
+**Safe to Spend**, **Net Worth** and **Ask Coffernest** pass their answer on as text, so a later step in your shortcut can use it, for example to send it in a message.
+
+## Spotlight
+
+Coffernest's shortcuts also show up when you search in Spotlight. Swipe down on the Home Screen, type "Coffernest" or "safe to spend", and tap a result to run it.
+
+## If something doesn't work
+
+- **"Open Coffernest and sign in first."** You're signed out. Open the app and sign in.
+- **"You have view-only access."** Someone with view-only access can't add entries. Ask your household's admin.
+- **"Your free trial has ended."** Adding from widgets, Siri and Shortcuts needs the same unlock as the app. Open Coffernest to unlock it. Family members an admin added never need to.
+- **"Add an account in Coffernest first."** Siri needs at least one account to put the entry in.
+- **"Couldn't reach your server."** What's Due and Net Worth need to reach your server. Check your connection and try again.

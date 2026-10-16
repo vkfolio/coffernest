@@ -1,0 +1,139 @@
+---
+title: Install the server
+description: Run the Coffernest server with Docker Compose, create the first account from your iPhone and connect the app.
+sidebar:
+  order: 1
+---
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import welcome from '~/assets/shots/welcome.png';
+
+The Coffernest server is three containers started by one Docker Compose file: the API, a Postgres database and MinIO for files. Your household's books live on it, and the Coffernest app on each family member's iPhone signs in to it.
+
+## What you need
+
+- A machine that runs Docker with the Compose plugin. A home server, a Raspberry Pi 5, a Jetson or a small VPS all work. Ready-made images are published for arm64 and amd64.
+- About 1.5 GB of free memory for the API, Postgres and MinIO together.
+- Git, to fetch the compose file, and `openssl` (or any other way to make long random strings).
+- Ports 8080 (the API) and 9000 (MinIO) free on that machine.
+- The Coffernest app on an iPhone that can reach the machine over your network.
+
+## Start it
+
+<Steps>
+
+1. Fetch the code and make your settings file.
+
+   ```bash
+   git clone https://github.com/vkfolio/coffernest
+   cd coffernest
+   cp .env.selfhost.example .env
+   ```
+
+2. Make a secret for each of `POSTGRES_PASSWORD`, `S3_SECRET_KEY`, `JWT_SECRET` and `SECRET_ENC_KEY`. This prints four lines you can paste over the empty ones in `.env`:
+
+   ```bash
+   for k in POSTGRES_PASSWORD S3_SECRET_KEY JWT_SECRET SECRET_ENC_KEY; do
+     echo "$k=$(openssl rand -hex 32)"
+   done
+   ```
+
+3. In `.env`, set `PUBLIC_URL` and `S3_PUBLIC_URL` to the addresses your iPhone will use. At home that is usually the machine's IP address, for example `http://192.168.1.20:8080` and `http://192.168.1.20:9000`. Leave `ALLOW_REGISTRATION=false`.
+
+4. Start the containers. You can build the image yourself or use the published one (see below).
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+5. Check that the server is up. The first start applies the database migrations, so give it a few seconds.
+
+   ```bash
+   curl http://localhost:8080/health
+   ```
+
+   A healthy server answers `{"ok":true,"db":true,"s3":true}`.
+
+</Steps>
+
+<Aside type="caution">
+`.env` holds every secret the server has. Keep a copy somewhere safe and private. If you lose `SECRET_ENC_KEY`, saved account numbers and statement passwords can't be read again. See [Backups](/server/backups/).
+</Aside>
+
+### Build it or pull the image
+
+<Tabs>
+<TabItem label="Build from source">
+The compose file builds the API from the `api` folder:
+
+```bash
+docker compose up -d --build
+```
+</TabItem>
+<TabItem label="Ready-made image">
+Each release is published as `ghcr.io/vkfolio/coffernest`, tagged with its version (such as `0.2.0`) and `latest`. In `docker-compose.yml`, replace `build: ./api` under `api` with:
+
+```yaml
+    image: ghcr.io/vkfolio/coffernest:latest
+```
+
+Then pull and start:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+</TabItem>
+</Tabs>
+
+## Create the first account
+
+The first account on a server becomes its admin. You make it from the iPhone app.
+
+<Shots items={[{ src: welcome, caption: 'Connect to a server' }]} />
+
+<Steps>
+
+1. Open Coffernest and tap **Connect to a server**.
+
+2. Enter the server's address, for example `http://192.168.1.20:8080`. Type the `http://` part yourself: if you leave it out, the app adds `https://`.
+
+3. Tap **Check connection**. When it says "Connected in … ms.", tap **Save**.
+
+4. On the sign-in screen, tap **Set up this server**. This button appears only while nobody has signed up yet.
+
+5. Enter your name, email, a password of at least 10 characters and a name for your household, then tap **Sign up**.
+
+</Steps>
+
+You are now the admin of this server and the owner of the first household. The app sets the household's currency, time zone and financial year start from your iPhone's settings; you can change the currency later in **Settings › Household**.
+
+## Add your family
+
+With `ALLOW_REGISTRATION=false`, nobody else can start an account until you add their email.
+
+<Steps>
+
+1. Go to **Settings › Household** and tap **Add family member**.
+
+2. Enter their email and tap **Add**. They show as "Not signed up yet" until they join.
+
+3. Tell them the server address. On their iPhone they tap **Connect to a server**, enter the same address, then tap **Sign up** and use that email.
+
+</Steps>
+
+They join your household as a member who can add and edit everything. Only you, the admin, can add or remove family. Coffernest doesn't send emails, so letting them know is up to you. Anyone whose email you haven't added sees "Ask your family's admin to add this email first". More is in [Family members](/family/members/).
+
+<Aside type="note">
+Set `ALLOW_REGISTRATION=true` only if you want anyone who can reach the server to start a household of their own on it.
+</Aside>
+
+## Already using Coffernest on your iPhone
+
+If you started with **Use on this iPhone**, you can keep your books on the phone and send a copy to your server. Go to **Settings › Sync with a server**, enter the server address and an account on it, and tap **Connect and sync**.
+
+## Next steps
+
+- To use the app away from home, put the server behind HTTPS: [Domain and HTTPS](/server/https/).
+- Every setting is listed in [Configuration](/server/configuration/).
+- Set up [backups](/server/backups/) before you add months of entries.

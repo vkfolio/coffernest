@@ -1,0 +1,150 @@
+---
+title: Sync
+description: How POST /api/v1/sync swaps changes between a device's own copy of the books and the server.
+sidebar:
+  order: 3
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+When the iPhone app keeps the books on the phone and syncs with a server, it uses one route: `POST /api/v1/sync`. A device sends the rows it changed since it last synced and gets back everything that changed on the server since then. You can use the same route for any client that keeps its own copy.
+
+## The round trip
+
+<Steps>
+1. The device sends its changed rows, its deletes and a `cursor` from the last answer.
+2. The server applies them. Where both sides changed the same row, the newest edit wins.
+3. The server answers with what changed there since the cursor, any ids it renamed, any rows it couldn't take, and a new cursor.
+4. The device applies the answer and keeps the new cursor for next time.
+</Steps>
+
+Each request runs in one database transaction, so if it fails, nothing changes. A row that breaks a rule doesn't stop the others: it is listed in `rejected` and the rest are saved.
+
+## Request
+
+```json
+{
+  "client_id": "iphone-5f2c9a7e",
+  "cursor": "184467",
+  "changes": {
+    "txn": [
+      {
+        "id": "0b6f1c1e-6a1d-4f53-9a4e-2d7c1a9b8e11",
+        "account_id": "7d1e3c52-9b0a-4a8e-8f3c-5a2b6e4d1c90",
+        "date": "2026-10-15",
+        "amount": "450.00",
+        "direction": "debit",
+        "kind": "expense",
+        "status": "cleared",
+        "payee": "Milk",
+        "updated_at": "2026-10-15T08:12:03+00:00"
+      }
+    ]
+  },
+  "deletes": [
+    { "table": "txn", "id": "4c0e…", "deleted_at": "2026-10-15T08:20:00+00:00" }
+  ],
+  "household": { "name": "Home", "currency": "INR", "updated_at": "2026-10-14T19:00:00+00:00" },
+  "pull": true
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `client_id` | Required. A stable id for this device, 8 to 64 letters, digits, `-` or `_`. Rows the server took from this device aren't sent back to it. |
+| `cursor` | The `cursor` from the last answer, a string of digits. Leave it out to get everything. |
+| `changes` | Rows by table name. Each row is a whole row with its `id` (a UUID) and `updated_at`. |
+| `deletes` | Rows deleted on the device, each with `table`, `id` and `deleted_at`. |
+| `household` | Household settings the device changed, with their `updated_at`. Only the owner's are applied. |
+| `pull` | `true` by default. Set it to `false` on every part of a large first sync except the last. |
+
+At most 5,000 rows and deletes in total can go in one request; more answers `413`. For a large first sync, send the rows in parts with `"pull": false`, and the last part with `"pull": true`.
+
+### Tables
+
+Rows use the database's own column names, the same shapes as a backup. Tables are applied parents first, in this order:
+
+`category`, `person`, `category_rule`, `account`, `loan`, `loan_rate_change`, `credit_card`, `card_statement`, `card_emi`, `recurring_rule`, `txn`, `loan_prepayment`
+
+Some columns stay on the server and are never sent or taken: `household_id`, `member_id`, `owner_member_id`, `created_by` and `number_sealed` (sealed account numbers). `created_at` and `materialized_until` are only taken when a row is new. Unknown columns are ignored. An unknown table name in `changes` fails the whole request with `400`; in `deletes` it is listed in `rejected`.
+
+Values are written as in the rest of the API: UUIDs, dates and timestamps as strings, amounts as decimal strings, and enums by their value.
+
+For `household`, the fields that can be sent are `name`, `currency`, `timezone`, `fy_start_month` and `spend_buffer`. They are applied only when the sender is the owner and the `updated_at` is newer than the server's.
+
+## Response
+
+```json
+{
+  "cursor": "184502",
+  "changes": { "txn": [ … ], "category": [ … ] },
+  "deletes": [ { "table": "txn", "id": "9a7e…" } ],
+  "id_map": { "c3d1…": "51aa…" },
+  "rejected": [ { "table": "category", "id": "e810…", "reason": "Its parent_id isn't in this household" } ],
+  "household": { "name": "Home", "currency": "INR", "timezone": "Asia/Kolkata", "fy_start_month": 4, "ai_enabled": true, "spend_buffer": 0, "updated_at": "…" },
+  "applied": 2
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `cursor` | Keep it and send it next time. `null` when the request had `"pull": false`. |
+| `changes` | Rows changed on the server since your cursor, plus any of your rows that lost a conflict (the server's version). |
+| `deletes` | Rows to delete on the device: `table` and `id`. |
+| `id_map` | Ids the server renamed, from the id you sent to the id it kept. Rename your copy and every reference to it. |
+| `rejected` | Rows that weren't saved, each with a reason. They stay on the device so you can fix them or try again. |
+| `household` | The household's current settings. |
+| `applied` | How many rows and settings were written. |
+
+## How conflicts are settled
+
+Each row is decided on its own by `updated_at`:
+
+- If the device's `updated_at` is newer than the server's, the device's row is saved.
+- If it is older, the server keeps its row and sends it back in `changes`.
+- If they are equal, nothing changes.
+
+Edits made through the rest of the API, by the app on another device, the server's own background work, or the assistant, stamp `updated_at` with the server's time. Rows that arrive through sync keep the `updated_at` the device sent. Keep device clocks accurate, because a clock that runs ahead wins conflicts it shouldn't.
+
+Deletes follow the same rule. A delete is applied if the server's row wasn't edited after `deleted_at`; otherwise the server keeps the row and sends it back. Entries in `txn` are marked deleted rather than removed; rows in other tables are removed.
+
+A new row from the device that the server had already deleted, later than the device last edited it, stays deleted and comes back in `deletes`.
+
+## Ids and matching rows
+
+A device makes its own UUIDs. The server keeps them, with two exceptions.
+
+**The same thing under another id.** Some rows are matched by what they are, not their id:
+
+| Table | Matched on |
+|---|---|
+| `category` | `parent_id` and `name` |
+| `person` | `name` |
+| `category_rule` | `match` |
+| `loan`, `credit_card` | `account_id` |
+| `card_statement` | `card_id` and `statement_date` |
+| `txn` | `recurring_rule_id`, `occurrence_date` and `account_id` (occurrences of a bill) |
+
+When a row matches one the server already has, the server keeps its own id and returns the pair in `id_map`. For `category`, `person`, `category_rule`, `loan` and `credit_card`, the household's existing copy wins, so a new device's starter categories don't overwrite the ones the household already uses; the server's version comes back in `changes`. For the other tables, the newest edit wins as usual.
+
+**An id another household uses.** The row gets a new id, returned in `id_map`.
+
+References inside a request are renamed too: if a category's id changes, the entries pointing at it in the same request follow. A reference to a row that isn't in your household, or arriving in the same request, is cleared if the column allows it. Otherwise the row is rejected; a sub-category whose parent hasn't arrived yet stays on the device for next time.
+
+## The cursor
+
+The cursor marks the oldest database transaction that was still running when the server read its changes. The next pull sends every row changed by any transaction from that point on. A write that was still committing at the time is never missed, and a row may now and then arrive twice, which is harmless: apply it again.
+
+A pull leaves out two kinds of row:
+
+- Rows that came from this same `client_id`.
+- Expected occurrences of a bill that nobody has touched. Every device creates these from the bill's rule itself. Once an occurrence is edited, paid or deleted, it travels like any other row, and the device matches it to its own copy by rule, date and account.
+
+The first pull, without a cursor, sends every row and leaves out deleted entries. Later pulls include deletes.
+
+## Permissions
+
+Any member can pull. Viewers can't send changes, deletes or settings; trying answers `403`. A successful sync that changed anything tells other open apps through the [live updates](/api/overview/#live-updates) stream.
+
+<Aside type="note">
+Members, invites, connections, files, the inbox and assistant conversations are not part of sync. They stay on the server and are reached through their own routes.
+</Aside>

@@ -1,0 +1,96 @@
+---
+title: Home and free to spend
+description: What Home shows, how the free-to-spend number is worked out, and how to set the cushion you keep aside.
+sidebar:
+  order: 1
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import home from '~/assets/shots/home.png';
+import freeToSpend from '~/assets/shots/free-to-spend.png';
+
+Home answers three questions in order: are you okay this month, how much can you spend, and what's about to go out.
+
+<Shots items={[{ src: home, caption: 'Home' }, { src: freeToSpend, caption: 'How this is worked out' }]} />
+
+## What's on Home
+
+From the top:
+
+- **A one-line status**, such as "You're on track this month" or "Rent is overdue".
+- **Free to spend**, with roughly how much that is per day.
+- **Coming up**: what's due in the next seven days.
+- **This month**: money in against spending and EMIs so far. Tap it to open Spending.
+- **To do** rows when something needs you, such as entries that need a category, or statements to check on a server.
+- **Net worth**, with how much it's moved this month. Tap it for the [Net worth](/app/networth/) screen.
+- **Ask about your money**, which opens the assistant.
+
+The round button at the top left opens **Settings**. The magnifying glass opens [Search](/app/spending/#search), and the bell shows notifications.
+
+## Free to spend
+
+Free to spend is the money you can use between now and your next income without leaving a bill unpaid. Tap the number to see the sum line by line in **How this is worked out**:
+
+| Line | What it means |
+|---|---|
+| In your accounts | The balances of your active bank, cash and wallet accounts that are set to count |
+| Bills and EMIs before *date* | Expected payments out of those accounts until then |
+| Credit card payments due | What's left to pay on card statements due by then |
+| Cushion you keep aside | An amount you choose to leave untouched |
+| **Free to spend** | The first line minus the other three |
+
+Below the sum, **Already counted** lists each bill, EMI and card statement that was taken off, with its date.
+
+### Which period it covers
+
+The period runs until your next expected income, such as salary. If no income is expected before the month ends, it runs to the end of the month. The line under the number spreads the amount over the days left and names the last day, so you can read it as a daily allowance.
+
+### What counts
+
+- Only bank, cash and wallet accounts count. Investments, loans and credit cards don't.
+- You can leave an account out, for example a savings account you never spend from. Open the account, tap **Edit** and turn off **Count in safe to spend**.
+- Expected payments come from your [repeating bills and EMIs](/app/dues/). A bill that's overdue and not marked paid still counts, because it still has to be paid.
+- A card payment is counted once, from the card's statement, even if you also have it set up as a repeating payment.
+
+### When it's negative
+
+If the bills and card dues coming up are more than you have, Home shows **Short by** and the amount, in red. Tap it to see which payments are the cause.
+
+## The cushion
+
+The cushion is money you want to keep aside, such as a small emergency amount, so it's never counted as free to spend.
+
+<Steps>
+1. Open **Settings › Household**.
+2. Enter an amount in **Safe-to-spend buffer**.
+3. Tap **Save**.
+</Steps>
+
+On a server, only the admin can change it.
+
+## The status line
+
+Home picks the first of these that applies:
+
+1. A bill is overdue, or several are.
+2. "You're short for this month's bills", when free to spend is negative.
+3. "Salary hasn't arrived yet", when nothing has come in by the 5th.
+4. How much is due in the next three days.
+5. "Spending is running ahead of income", when this month is on course to end with more going out than coming in.
+6. "You're on track this month".
+
+## Coming up
+
+Coming up shows up to three payments due in the next seven days, with overdue ones first. If more are due, a line such as "2 more this week" takes you to the full list. Tap **See all** for everything due in the next 60 days. Tapping a card payment opens that card. See [Bills and dues](/app/dues/).
+
+## Notes and banners
+
+A few notes can appear at the top of Home:
+
+- **Trial reminders.** If you haven't started the trial, or it ends within three days, or it has ended, a note says so. Tap it to start the trial or unlock. See [Pricing](/start/pricing/).
+- **Offline or couldn't refresh.** When Coffernest can't reach your server, Home shows the last figures it had, with the time they're from, and **Try again**.
+- **A new household.** Until you add a bank account, Home asks you to add one, because free to spend needs a balance to start from. You can add cash spending with the Add button straight away.
+
+<Aside type="tip">
+Touch and hold the free-to-spend number and choose **Hide amounts** to show dots instead of figures, for example when someone's looking over your shoulder. Turn it off the same way, or in **Settings › Appearance and security**.
+</Aside>

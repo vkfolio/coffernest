@@ -1,0 +1,16 @@
+---
+// Phone screenshots in a row, each with a short caption. On a phone they scroll sideways.
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props { items: { src: ImageMetadata; caption?: string; alt?: string }[] }
+const { items } = Astro.props;
+---
+<div class="cn-shots not-content" data-count={items.length}>
+  {items.map(({ src, caption, alt }) => (
+    <figure>
+      <Image src={src} alt={alt ?? caption ?? ''} widths={[320, 640]} sizes="(max-width: 50rem) 60vw, 260px" />
+      {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+  ))}
+</div>

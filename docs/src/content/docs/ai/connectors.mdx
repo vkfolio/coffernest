@@ -1,0 +1,150 @@
+---
+title: Connect Claude and other apps
+description: Use your household's numbers from claude.ai, Claude Desktop, Claude Code or another MCP client.
+sidebar:
+  order: 4
+---
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import connections from '~/assets/shots/connections.png';
+
+Your Coffernest server has a Model Context Protocol (MCP) endpoint. Connect an AI app to it and the app can look up your balances, dues and plans, and add entries if you allow it. The thinking happens in the app you connect, so your server doesn't need an AI provider for this.
+
+## Find your MCP address
+
+Go to **Settings › Connections**. The **MCP address** is your server's public address followed by `/mcp`, for example:
+
+```
+https://your-server/mcp
+```
+
+The server builds this from `PUBLIC_URL`. On a self-hosted server, set `PUBLIC_URL` to the exact HTTPS address the apps use. It is also the sign-in issuer, and requests that arrive under a different host name are refused. The endpoint is on unless `MCP_ENABLED=false`.
+
+<Shots items={[{ src: connections, caption: 'Settings › Connections' }]} />
+
+## Two ways to sign in
+
+**Sign in from the app (OAuth).** The connecting app opens a Coffernest sign-in page. You enter your email and password, and your two-step code if you use one, then choose read only or read and add. This is the usual way for claude.ai, Claude Desktop and Claude Code.
+
+**An API token.** Make a token in **Settings › Connections** and give it to the app as a bearer token. Use this for clients that let you set an `Authorization` header.
+
+Both kinds of access are limited to your household. A token or sign-in made for the MCP endpoint doesn't work with the rest of the API, and the app's own sign-in doesn't work at `/mcp`.
+
+| Access | What the app can do |
+|---|---|
+| Read only (`finance.read`) | Look up anything in your books |
+| Read and write (`finance.read`, `finance.write`) | Also add entries, bills, accounts, loans and cards, and approve inbox items |
+
+Viewers in a household only ever get read-only access.
+
+## Connect an app
+
+<Tabs>
+<TabItem label="claude.ai and Claude Desktop">
+
+<Steps>
+1. In Claude, open **Settings › Connectors** and add a custom connector.
+2. Give it a name, such as Coffernest, and paste your MCP address.
+3. Tap **Connect**. Coffernest's sign-in page opens.
+4. Sign in, choose **read only** or **read and add**, and confirm.
+</Steps>
+
+A connector added on claude.ai is also available in Claude Desktop with the same account.
+
+</TabItem>
+<TabItem label="Claude Code">
+
+Add the server, then sign in from Claude Code:
+
+```sh
+claude mcp add --transport http coffernest https://your-server/mcp
+```
+
+Run `/mcp` inside Claude Code and choose to authenticate. Your browser opens the Coffernest sign-in page.
+
+To use a token instead of signing in:
+
+```sh
+claude mcp add --transport http coffernest https://your-server/mcp \
+  --header "Authorization: Bearer cn_pat_your_token"
+```
+
+</TabItem>
+<TabItem label="Other MCP clients">
+
+Any client that speaks MCP over streamable HTTP can connect.
+
+- Clients that sign in with OAuth work if they return to a `localhost` address after sign-in, as command-line and desktop clients usually do. The server supports dynamic client registration and PKCE.
+- Clients that let you set headers can send `Authorization: Bearer cn_pat_…` with an API token.
+
+</TabItem>
+</Tabs>
+
+<Aside type="note">
+The sign-in page only returns to Claude's own callback address or to `localhost`. Apps that sign in through a web callback of their own, such as ChatGPT's connectors, can't complete the sign-in. Use a client that accepts a bearer token, if it lets you set one.
+</Aside>
+
+## Make an API token
+
+<Steps>
+1. Go to **Settings › Connections**.
+2. Tap **New token** and give it a name, such as "Claude Code on my laptop".
+3. Choose **Read only** or **Read and write**.
+4. Copy the token now. It starts with `cn_pat_` and you won't see it again.
+</Steps>
+
+In the app, only the household owner can make tokens, because a token opens the whole household to another app. Each person can have up to 20 tokens at a time.
+
+## What a connected app can use
+
+Read tools:
+
+| Tool | What it returns |
+|---|---|
+| `get_overview` | Today's position: safe to spend until payday, this month's income, spending and EMIs, debt load, loans, cards and emergency-fund months |
+| `get_dues` | Bills, EMIs, card bills and income in the next N days, including anything overdue |
+| `get_category_spend` | Spending per category for a month against last month and the three-month average |
+| `get_spend` | Spending or income over any period against the period before, by category and person |
+| `get_cashflow` | Income, spending and EMIs per month |
+| `list_accounts` | Every account with its balance, every open loan and every card |
+| `search_transactions` | Entries, newest first, matching text or a date range |
+| `simulate_prepayment` | The exact effect of a lump sum or extra monthly payment on one loan |
+| `plan_payoff` | EMIs only against avalanche and snowball for an extra monthly amount |
+| `compare_paths` | Month-by-month outcome of putting money towards different paths over N years |
+| `project_goal` | A goal's future cost and the monthly SIP needed |
+| `get_anomalies` | Unusually large spends, possible duplicates and expected items not yet confirmed |
+| `get_tax_summary` | This financial year's home-loan principal and interest from the loan schedules |
+| `get_inbox` | Recent inbox files: what was found, what was added and what waits for approval |
+| `list_skills`, `get_skill` | The household's [playbooks](/ai/skills/) and their full instructions |
+
+Write tools, which need read and write access:
+
+| Tool | What it does |
+|---|---|
+| `add_transaction` | Record money spent or received on an account |
+| `add_recurring_bill` | Add a repeating bill or income |
+| `add_person` | Add someone entries can be for, such as a child |
+| `add_account`, `add_loan`, `add_card` | Set up accounts, loans and cards |
+| `update_details` | Correct details on an existing account, loan or card |
+| `stop_recurring` | Stop or remove a repeating bill, income or SIP |
+| `move_loan_to_card` | Turn a loan billed on a credit card into an EMI on that card |
+| `review_inbox_items` | Approve or skip items waiting in the inbox |
+| `upload_document` | Drop a statement, bill or screenshot (up to 10 MB) into the inbox |
+
+Files dropped with `upload_document` are read only if your server has [AI turned on](/ai/server-ai/). Built-in playbooks are also offered as MCP prompts.
+
+The app you connect sends your questions and the results of these tools to its own AI provider, under that provider's terms.
+
+## Stay signed in, and revoke access
+
+An app that signed in gets an access token that lasts an hour, and renews it in the background. A connection that goes unused for 60 days has to sign in again. If an old renewal token is ever replayed, the whole connection is revoked.
+
+To end access:
+
+<Steps>
+1. Go to **Settings › Connections**.
+2. For a token, swipe left on it under **API tokens** and tap **Revoke**.
+3. For an app that signed in, swipe left on it under **Connected apps** and tap **Disconnect**.
+</Steps>
+
+A revoked token stops working straight away. A disconnected app can't renew its access, and the access token it already holds runs out within the hour. You can also remove the connector inside the app you connected, but revoking it here is what stops the server accepting it.

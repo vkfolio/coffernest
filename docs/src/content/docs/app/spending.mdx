@@ -1,0 +1,110 @@
+---
+title: Spending and Activity
+description: See where the money went by category and by person, browse and filter every entry in Activity, and search.
+sidebar:
+  order: 5
+---
+import { Steps, Aside } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import spending from '~/assets/shots/spending.png';
+import activity from '~/assets/shots/activity.png';
+import transaction from '~/assets/shots/transaction.png';
+import search from '~/assets/shots/search.png';
+
+The **Spending** tab shows where the money went. The **Activity** tab lists every entry, newest first.
+
+<Shots items={[{ src: spending, caption: 'Spending' }]} />
+
+## The Spending tab
+
+The control at the top switches between three views:
+
+- **Where it went**: spending by category and by person for the period you choose.
+- **In and out**: money in against money out over the last six months. See [Cash flow](/app/planning/#cash-flow).
+- **Tax**: links to the tax summary, **Unusual activity**, **Coming up** and **Debt and EMIs**. Outside rupee households this view is called **Checks** and has no tax summary.
+
+### Choose a period
+
+Tap the calendar button at the top right and choose **7 days**, **This month**, **Last month**, **This quarter**, **This FY**, **12 months** or **All time**. **Custom…** lets you pick the dates. The same period is used on every Where it went screen.
+
+### Where it went
+
+The top shows how much you spent in the period, about how much that is a day, and how it compares with the same stretch of the period before. For the current month it also says how much you'll spend by month end at this pace, and how much went to loan EMIs on top.
+
+Below that:
+
+- **Trend**: spending over the period, with the period before shown behind it.
+- **Where it went**: a chart and a ranked list of categories, each with its share of the total. Tap a category to see what's **Inside this category**.
+- **Who it was for**: spending for each person you've tagged, and **Everyone** for spending that wasn't for anyone in particular. Tap a person to see their spending by category.
+- **Top places**: where you spent most, and how many times.
+- **See entries in Activity**: opens Activity filtered to what you're looking at.
+
+If some entries have no category, a note says how many. Tap **Sort** to open **Help me sort**, which groups them by place, biggest first. Pick a category once for each place and Coffernest remembers it for next time.
+
+## Categories
+
+Coffernest comes with categories for everyday household spending. To change them, go to **Settings › Categories**.
+
+- Tap **New category** to add one. Give it a name and a colour, and turn on **Fixed cost (rent, EMIs, fees)** for regular costs that don't change much.
+- Tap a category to edit it.
+- Swipe left on a category to **Archive** it, or **Merge** it into another. Merging moves its entries across.
+- Archived categories are listed at the bottom. Swipe left and tap **Restore** to bring one back.
+
+When you sort a place in **Help me sort**, or tap **Apply** after changing an entry's category, Coffernest learns that place and puts new entries from it in the same category. You can see and forget what it has learned in **Settings › Auto-sort rules**.
+
+## People
+
+Tag spending for a person to see what each one costs. People don't need a login, so children and parents can have their own spending without using the app.
+
+<Steps>
+1. Go to **Settings › People**.
+2. Tap **Add a person**, enter their name, choose who they are (Child, Spouse, Parent, Me or Other) and a colour.
+3. Tap **Save**.
+</Steps>
+
+Then choose them next to **For** in [Quick Add](/app/adding/), or type their name when you describe an entry.
+
+## Activity
+
+<Shots items={[{ src: activity, caption: 'Activity' }, { src: transaction, caption: 'A transaction' }]} />
+
+Activity lists your entries by day, with the total spent shown on each day. The strip at the top shows spending day by day; tap a day to jump to it.
+
+Above the past entries you may see:
+
+- **Coming up**: expected bills and income, soonest first. Swipe right to **Confirm** one or left to **Skip** it. See [Bills and dues](/app/dues/).
+- **Waiting to sync**: entries saved while you were offline, on a server.
+
+### Filter the list
+
+Use the buttons along the top:
+
+- **When**: one of the periods above, or **Any time**
+- **For**: a person, or **Everyone (no one in particular)**
+- **Account**
+- **Category**
+- **Direction**: **Money in** or **Money out**
+
+When a filter is on, the list shows totals for what matches. Tap **Clear** to remove all filters.
+
+The **···** button at the top right opens **Bills and income** and **Export**, and on a server, **Statements to check**.
+
+### A transaction
+
+Tap an entry to see its category, who it was for, the account, date, tags, note and where it came from: added by you, from a repeating entry or from a statement. An expected entry also has **Confirm** and **Skip this time**.
+
+On a server, you can add a receipt or bill under **Attachments**: tap **Add attachment** and choose **Photo**, **Scan** or **File**.
+
+Tap **Edit** to change the entry, or **Delete transaction** to remove it. See [Adding entries](/app/adding/#undo-edit-and-delete).
+
+## Search
+
+<Shots items={[{ src: search, caption: 'Search' }]} />
+
+Tap the magnifying glass at the top of Home or Activity. Type at least two letters or digits. Search looks through payees, notes, amounts and categories, and also finds accounts and settings screens by name. Use the buttons under the search field to show only **Transactions**, **Accounts**, **Categories** or **Settings**.
+
+Your recent searches are listed before you type. Tap **Clear** to forget them.
+
+<Aside type="tip">
+To find a payment by amount, type the number without the currency symbol or commas, for example `1200`.
+</Aside>

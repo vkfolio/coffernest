@@ -1,0 +1,98 @@
+---
+title: Security
+description: How the Coffernest server protects sign-ins and household data, and how to report a vulnerability.
+sidebar:
+  order: 8
+---
+import { Aside } from '@astrojs/starlight/components';
+
+A Coffernest server holds a household's whole financial picture, so it's built to face the internet with care. This page lists what the server does for you and what's left to you as the person running it.
+
+## Passwords
+
+Passwords must be 10 to 200 characters long. They're stored only as Argon2id hashes, tuned to take about a tenth of a second on a small ARM board. When someone signs in with an email that doesn't exist, the server still does the same work, so response times don't reveal which accounts are on the server.
+
+Changing your password in **Settings › Appearance and security › Change password** signs out every device, including the one you're using.
+
+## Two-step sign-in
+
+Each person can turn on two-step sign-in in **Settings › Appearance and security › Two-factor authentication**. It uses the standard 6-digit codes from an authenticator app, such as Apple Passwords, 1Password or Google Authenticator.
+
+- Setting it up gives you 10 recovery codes. Each one works once in place of a code if you lose your authenticator.
+- A code is accepted for about 30 seconds either side of its time, and a code that has been used can't be used again.
+- Turning it off needs both your password and a current code.
+
+Codes depend on the time, so the server's clock must be right. See [Troubleshooting](/server/troubleshooting/).
+
+## Lockouts after failed sign-ins
+
+The server counts failed sign-ins two ways, per email and per IP address. The counts are kept in the database, so restarting the server doesn't reset them.
+
+| Counted by | Free attempts | First lockout | Longest lockout |
+|---|---|---|---|
+| Email | 5 | 1 minute | 15 minutes |
+| IP address | 8 | 30 seconds | 1 hour |
+
+Each further failure doubles the lockout, up to the longest. A successful sign-in clears both counts, and a count also starts again after a day with no failures. While locked, the server answers "Too many attempts. Try again later." and the app shows "Too many attempts. Wait a minute and try again."
+
+The same lockouts protect the sign-in page that AI apps use when you connect them in **Settings › Connections**.
+
+Behind a reverse proxy, set `TRUSTED_PROXY_HEADER` so the right IP address is counted; see [Domain and HTTPS](/server/https/). Apart from sign-in, the server doesn't limit how many requests a client sends. If you need that, add it in your proxy.
+
+## Sessions and devices
+
+- Sign-in gives the app a short-lived token (15 minutes) and a refresh token. The app swaps the refresh token for a new pair as it goes, and each refresh token works only once.
+- If a used refresh token comes back, which means someone copied it, the server ends that device's session at once. A short grace period allows for the app refreshing twice at the same moment.
+- A device that isn't used for 30 days is signed out.
+- **Settings › Appearance and security › Signed-in devices** lists each device with its IP address and when it was last used. Swipe to sign one out, or tap **Sign out all other devices**.
+
+## Account numbers and other secrets
+
+Full bank account numbers and remembered statement PDF passwords are encrypted in the database with a key made from `SECRET_ENC_KEY`. Lists only ever show a masked number with the last four digits. Revealing a full number is recorded in the audit log, and **Export CSV** never includes account numbers.
+
+Keep `SECRET_ENC_KEY` safe and set it before anyone saves an account number. If it's empty, the server uses a key made from `JWT_SECRET`, and logs a warning at start-up.
+
+Household backups from **Settings › Backup** are encrypted with AES-256-GCM, using a key made from the owner's passphrase with scrypt. Only a household's owner can export or restore one.
+
+## Roles
+
+Each household has an owner, who adds and removes family and makes backups. Members added from the app can add and edit everything in the books. The server checks the role on every request, and each household only ever sees its own data and files.
+
+## The audit log
+
+The server records sign-ins, failed sign-ins, password changes, turning two-step sign-in on and off, signing out everywhere, refresh-token reuse, account-number reveals, and backup exports and restores, each with the time and IP address. It's in the `audit_log` table:
+
+```bash
+docker compose exec postgres psql -U coffernest -c "select created_at, action, ip from audit_log order by created_at desc limit 20"
+```
+
+## Security headers
+
+Every response carries these headers:
+
+| Header | Value |
+|---|---|
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `X-Frame-Options` | `DENY` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` |
+
+The server doesn't set `Strict-Transport-Security`, since it doesn't know whether it's behind HTTPS. Add it in your proxy if you want it.
+
+## What's up to you
+
+- Use long random values for every secret in `.env`, and keep that file private.
+- Put the server behind HTTPS before using it outside your home network.
+- Keep sign-up closed (`ALLOW_REGISTRATION=false`) unless you mean to host other households.
+- Update when a new release comes out; see [Updating](/server/updating/).
+- Keep backups, and test restoring one now and then.
+
+The API container runs as an unprivileged user, not as root.
+
+## Reporting a vulnerability
+
+Please report security problems privately, not in a public issue. On the [Coffernest repository](https://github.com/vkfolio/coffernest), go to **Security › Advisories** and use **Report a vulnerability**. You'll get a reply within a week.
+
+<Aside type="note">
+Coffernest is licensed under the AGPL-3.0. If you run a changed version for other people over a network, you must publish your changes under the same licence.
+</Aside>

@@ -1,0 +1,147 @@
+---
+title: Backups and moving servers
+description: Back up the Coffernest database and file bucket, use the built-in household backup, and restore onto a new server.
+sidebar:
+  order: 5
+---
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import Shots from '~/components/Shots.astro';
+import backup from '~/assets/shots/backup.png';
+
+There are two kinds of backup, and it's worth having both. A server backup copies the Postgres database and the file bucket, so you can bring back the whole server with every account on it. A household backup is one encrypted file the owner downloads from the app, holding one household's books and documents.
+
+## What to keep safe
+
+- The Postgres database (the `pgdata` volume).
+- The file bucket (the `miniodata` volume, or your external bucket).
+- Your `.env` file. Without the same `SECRET_ENC_KEY`, saved account numbers and remembered statement passwords in a database backup can't be read. If you never set `SECRET_ENC_KEY`, they depend on `JWT_SECRET` instead.
+
+Keep copies off the server itself, for example on another disk or with a storage service.
+
+## Back up the server
+
+Run these from the folder with `docker-compose.yml`.
+
+<Steps>
+
+1. Dump the database. This works while the server is running.
+
+   ```bash
+   docker compose exec -T postgres pg_dump -U coffernest -Fc coffernest > coffernest-$(date +%F).dump
+   ```
+
+2. Copy the MinIO data. Stop MinIO for a moment so the copy is consistent, then start it again.
+
+   ```bash
+   docker compose stop minio
+   docker run --rm -v coffernest_miniodata:/data -v "$PWD":/backup alpine \
+     tar czf /backup/coffernest-files-$(date +%F).tgz -C /data .
+   docker compose start minio
+   ```
+
+   Docker names volumes after the project folder, so `coffernest_miniodata` assumes the folder is called `coffernest`. Check with `docker volume ls`. With an external bucket, use your provider's own versioning or replication instead.
+
+3. Copy the two files and `.env` somewhere else.
+
+</Steps>
+
+A nightly cron job running the first step is a good start. Files change less often than entries, so copying the bucket weekly is usually enough.
+
+## Household backup from the app
+
+The owner of a household can download everything in it as one `.cnz` file: accounts, entries, bills, loans, cards, people, categories, statements, assistant chats and, if you choose, the documents. Sign-ins, members' passwords, devices and the audit log are never included.
+
+<Steps>
+
+1. Go to **Settings › Backup**.
+
+2. Enter a passphrase of at least 10 characters. You'll need it to restore, and it can't be recovered.
+
+3. Leave **Include documents** on to put attachments in the file, then tap **Export backup** and save the file.
+
+</Steps>
+
+The file is encrypted with AES-256-GCM using a key made from your passphrase, so it's safe to keep in cloud storage. Account numbers and statement passwords are stored in it under the passphrase too, which means the file restores on any Coffernest server, not only the one it came from. A file can be up to 200 MB to restore.
+
+### Restore a household backup
+
+Restoring replaces every entry, account, bill and file in the current household with what's in the backup.
+
+<Steps>
+
+1. Go to **Settings › Backup** and tap **Choose a backup file**.
+
+2. Check the household name, date and counts the app shows from the file.
+
+3. Enter the backup's passphrase and type your current household's name to confirm.
+
+4. Tap **Replace everything with this backup**.
+
+</Steps>
+
+Before it replaces anything, the server saves a safety copy of what was there, locked with the same passphrase, in the bucket under `<household-id>/backups/`. The owner can download the most recent one from `GET /api/v1/backup/last-safety`.
+
+Members are matched by email. Entries made by someone who isn't in this household become yours, and the app says so after the restore.
+
+<Shots items={[{ src: backup, caption: 'Settings › Backup' }]} />
+
+## Restore the whole server
+
+Use this after a disk failure, or to move to a new machine with every account intact.
+
+<Steps>
+
+1. On the new machine, clone the repository and put your old `.env` in place. Use the same `SECRET_ENC_KEY`, `JWT_SECRET`, `POSTGRES_PASSWORD` and S3 keys.
+
+2. Start only Postgres and MinIO, so the API doesn't create an empty database first.
+
+   ```bash
+   docker compose up -d postgres minio
+   ```
+
+3. Load the database dump.
+
+   ```bash
+   docker compose exec -T postgres pg_restore -U coffernest -d coffernest --clean --if-exists < coffernest-2026-10-16.dump
+   ```
+
+4. Put the files back.
+
+   ```bash
+   docker compose stop minio
+   docker run --rm -v coffernest_miniodata:/data -v "$PWD":/backup alpine \
+     tar xzf /backup/coffernest-files-2026-10-16.tgz -C /data
+   docker compose start minio
+   ```
+
+5. Start everything and check it.
+
+   ```bash
+   docker compose up -d
+   curl http://localhost:8080/health
+   ```
+
+</Steps>
+
+Use the same server image version as the old machine, or a newer one. A newer one updates the database as it starts; see [Updating](/server/updating/).
+
+## Moving servers
+
+<Tabs>
+<TabItem label="Everything">
+To move the whole server, with every household and sign-in, follow **Restore the whole server** above on the new machine. If the address changes, update `PUBLIC_URL` and `S3_PUBLIC_URL`, and have everyone go to **Settings › Server › Change server** in the app.
+</TabItem>
+<TabItem label="One household">
+To move just your household to a server someone else runs, or to a fresh one:
+
+1. Export a household backup on the old server.
+2. Sign up on the new server. Add your family's emails in **Settings › Household** and have them sign up, so their entries are matched to them.
+3. Restore the backup in **Settings › Backup** on the new server.
+
+Everyone signs in with a new password on the new server, since sign-ins aren't in the backup.
+</TabItem>
+</Tabs>
+
+<Aside type="tip">
+**Export CSV** in Settings gives a plain spreadsheet of entries for an accountant. It isn't a backup: it can't be restored and never includes account numbers.
+</Aside>

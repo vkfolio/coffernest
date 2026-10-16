@@ -5,10 +5,10 @@ from __future__ import annotations
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Query
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
 from coffernest.deps import Reader, Session
 from coffernest.enums import Direction, TxnKind
@@ -16,6 +16,11 @@ from coffernest.services import insights as svc
 from coffernest.services import networth
 from coffernest.services import spend as spend_svc
 from coffernest.services.amortization import q2
+
+# "2026-10" or "2026-10-01". Apps up to 1.0 build 8 send the short form.
+Month = Annotated[
+    date, BeforeValidator(lambda v: f"{v}-01" if isinstance(v, str) and len(v) == 7 else v)
+]
 
 Day = date  # field names "date" would shadow the type inside Pydantic models
 
@@ -271,7 +276,7 @@ async def net_worth(
 
 
 @router.get("/inout", response_model=InOutOut)
-async def in_out(ctx: Reader, session: Session, month: date | None = None) -> InOutOut:
+async def in_out(ctx: Reader, session: Session, month: Month | None = None) -> InOutOut:
     """One month's money in vs out, per account and per kind."""
     return InOutOut.model_validate(
         await svc.inout(session, ctx.household_id, month or date.today())
@@ -397,7 +402,7 @@ async def cashflow(
 
 @router.get("/categories", response_model=list[CategorySpendOut])
 async def categories(
-    ctx: Reader, session: Session, month: date | None = None
+    ctx: Reader, session: Session, month: Month | None = None
 ) -> list[CategorySpendOut]:
     rows = await svc.category_breakdown(session, ctx.household_id, month or date.today())
     return [CategorySpendOut.model_validate(r) for r in rows]

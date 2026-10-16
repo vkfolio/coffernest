@@ -1,0 +1,148 @@
+---
+title: AI on your server
+description: Turn on the server's assistant with Claude or any OpenAI-compatible model, then allow it for your household.
+sidebar:
+  order: 2
+---
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A Coffernest server works without AI. When you give it an AI provider, it adds the server's assistant, reads the statements and bills people drop in the inbox, and helps sort entries. This page covers the server settings and the switch the household owner turns on in the app.
+
+## What uses AI
+
+| Feature | Without AI | With AI |
+|---|---|---|
+| Assistant and monthly suggestions | Not available from the server. The iPhone app can still use Apple Intelligence or the person's own key. | Answers questions and makes suggestions from the household's own numbers. |
+| Reading statements and bills in the inbox | Files are stored but not read. They show "Turn on the assistant in Settings so files can be read." | PDFs, photos, screenshots, CSV and Excel files are read and turned into entries. |
+| Sorting entries | Sorting rules only. | Rules first, then the AI model for payees no rule knows. |
+| Describing an entry in words | The app's own parser. | The AI model fills in a category when the parser can't. |
+
+All of these also need the household owner to turn the assistant on for their household (see [Allow it for your household](#allow-it-for-your-household)).
+
+## Choose a provider
+
+Set `AI_PROVIDER` in the `.env` file next to `docker-compose.yml`.
+
+| `AI_PROVIDER` | What it uses | Also set |
+|---|---|---|
+| `none` | Nothing. This is the default. | |
+| `claude_agent` | Claude, through the Claude Agent SDK bundled in the server image | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`, and optionally `CLAUDE_MODEL` |
+| `openai_compat` | Any server that speaks the OpenAI chat-completions API: OpenAI, OpenRouter, Ollama, LM Studio and others | `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` |
+
+| Variable | Default | Used by |
+|---|---|---|
+| `CLAUDE_CODE_OAUTH_TOKEN` | empty | `claude_agent`: a token from `claude setup-token` |
+| `ANTHROPIC_API_KEY` | empty | `claude_agent`: an Anthropic API key |
+| `CLAUDE_MODEL` | `claude-opus-5-5` | `claude_agent` |
+| `LLM_BASE_URL` | `https://api.openai.com/v1` | `openai_compat` |
+| `LLM_API_KEY` | empty | `openai_compat`. Required unless the address contains `localhost`. |
+| `LLM_MODEL` | `gpt-4.1-mini` | `openai_compat` |
+| `AUTO_ADD_CONFIDENCE` | `0.85` | Inbox: rows read at or above this confidence go straight into the books; the rest wait for review. |
+
+Long tokens pasted from a terminal often pick up a line break or quotes. The server removes spaces, line breaks and surrounding quotes from `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_API_KEY` and `LLM_API_KEY` before using them.
+
+<Tabs>
+<TabItem label="Claude subscription">
+
+Use this if you have a Claude subscription and want the server to use it.
+
+<Steps>
+1. On any computer with Claude Code installed, run:
+
+   ```sh
+   claude setup-token
+   ```
+
+   Sign in when asked. It prints a long token.
+2. Add it to `.env`:
+
+   ```sh
+   AI_PROVIDER=claude_agent
+   CLAUDE_CODE_OAUTH_TOKEN=paste-the-token-here
+   ```
+3. Restart the server:
+
+   ```sh
+   docker compose up -d
+   ```
+</Steps>
+
+</TabItem>
+<TabItem label="Anthropic API key">
+
+<Steps>
+1. Create an API key in the Anthropic Console.
+2. Add it to `.env`:
+
+   ```sh
+   AI_PROVIDER=claude_agent
+   ANTHROPIC_API_KEY=sk-ant-your-key
+   ```
+3. To use a different Claude model from the default, also set `CLAUDE_MODEL`.
+4. Restart the server with `docker compose up -d`.
+</Steps>
+
+</TabItem>
+<TabItem label="OpenAI-compatible">
+
+Set the base URL of the API (ending in `/v1` for most servers), a key and a model name.
+
+```sh
+AI_PROVIDER=openai_compat
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_API_KEY=sk-your-key
+LLM_MODEL=gpt-4.1-mini
+```
+
+For OpenRouter, use `https://openrouter.ai/api/v1` and an OpenRouter key and model name.
+
+**Local models (Ollama, LM Studio).** If you run the API directly on the same machine, `http://localhost:11434/v1` (Ollama) or `http://localhost:1234/v1` (LM Studio) works without a key. Inside Docker, `localhost` is the container itself, so point at the host instead, for example `http://host.docker.internal:11434/v1`. On Linux, add `extra_hosts: ["host.docker.internal:host-gateway"]` to the `api` service for that name to work. Because that address doesn't contain `localhost`, the server asks for a key: set `LLM_API_KEY` to any text, such as `ollama`.
+
+Restart the server with `docker compose up -d`.
+
+</TabItem>
+</Tabs>
+
+<Aside type="caution">
+Pick a model that supports tool calling, or the assistant can't look anything up. Reading statements also needs structured JSON output, and photos or scanned PDFs need a model that accepts images. Small local models often struggle with long statements.
+</Aside>
+
+### Check it worked
+
+`GET /api/v1/meta` needs no sign-in and shows `ai_available` and `ai_provider`. Signed in, `GET /api/v1/ai/status` also shows the model and whether it's on for your household. In the app, **Settings › Assistant › Your server's assistant** shows the same status and model.
+
+## Allow it for your household
+
+Setting up a provider makes the assistant available. Each household's owner then decides whether to use it.
+
+<Steps>
+1. In the app, go to **Settings › Assistant**.
+2. Select **Your server's assistant**.
+3. Turn on **Allow for this household**.
+</Steps>
+
+Only the owner sees this switch. The owner can also tap **Turn on** in the assistant itself when it says the assistant is off for the household. Turning it off stops the assistant, inbox reading and AI sorting for that household.
+
+Each person still confirms on their own iPhone before their figures go to the server's assistant. See [Using the assistant](/ai/assistant/#before-your-figures-are-shared).
+
+<Aside type="note">
+Questions, the figures needed to answer them, uploaded statements and unsorted payees go from your server to the provider you chose, and that provider's terms apply. Tell your household before you turn it on.
+</Aside>
+
+## How figures are checked
+
+The model never works out money on its own. It is given tools that read from the same engine the app uses: balances, dues, spending, loan schedules, payoff plans, goal projections and path comparisons. It is told to call a tool for every number and to use the simulators for any what-if.
+
+After it answers, the server reads every amount written with a currency symbol or code, from 100 upwards, and compares it with the numbers the tools returned, the figures in the question, attached files and earlier turns. Abbreviated amounts such as ₹12.3 L or $1.2M are allowed for their rounding. Anything that doesn't match is listed as unverified, and the app shows **Couldn't check** with those amounts.
+
+A few more safeguards:
+
+- Roadmaps comparing options are recomputed by the engine from the paths the model names, so their figures come from the engine, not the model.
+- Monthly suggestions are thrown away if the model answered without looking at any data.
+- With Claude, every built-in tool (files, shell, web) is switched off and any settings or `CLAUDE.md` on the host are ignored. Only Coffernest's own tools are allowed.
+- Instructions found in payee names, notes or documents are treated as data.
+- Changes are made only when asked, only for members who may change data, and each one is shown as a card in the chat, with an **Undo** button where it can be taken back.
+
+## Server resources
+
+With `claude_agent`, each request starts a short-lived Claude process of roughly 200 to 300 MB. The server runs one at a time, so on a busy household a second question waits for the first. Statements are read one file at a time for the same reason. `openai_compat` makes plain HTTP calls and needs no extra memory on the server.
